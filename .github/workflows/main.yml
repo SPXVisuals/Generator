@@ -32,8 +32,21 @@ jobs:
         run: |
           python generate_data.py
 
-      # 5️⃣ Post to X (Twitter)
+      # 5️⃣a Check if images exist
+      - name: Check for images
+        id: check_images
+        run: |
+          if ls output/normalized/*.png output/ma/*.png output/marketcap/*.png output/pe/*.png 1> /dev/null 2>&1; then
+            echo "Images found. Proceeding to post to X."
+            echo "has_images=true" >> $GITHUB_OUTPUT
+          else
+            echo "No images found. Skipping posting to X."
+            echo "has_images=false" >> $GITHUB_OUTPUT
+          fi
+
+      # 5️⃣ Post to X only if images exist
       - name: Post to X
+        if: ${{ steps.check_images.outputs.has_images == 'true' }}
         env:
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
           TWITTER_API_KEY_SECRET: ${{ secrets.TWITTER_API_SECRET }}
