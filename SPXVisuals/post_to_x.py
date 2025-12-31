@@ -97,6 +97,16 @@ def post_tweets():
         log("Twitter credentials are missing. Set them in environment variables.")
         return
 
+    # v1.1 auth for media upload
+    auth_v1 = tweepy.OAuth1UserHandler(
+        api_key,
+        api_secret,
+        access_token,
+        access_secret
+    )
+    api_v1 = tweepy.API(auth_v1)
+
+    # v2 client for posting tweets
     client = tweepy.Client(
         bearer_token=bearer_token,
         consumer_key=api_key,
@@ -110,20 +120,22 @@ def post_tweets():
         media_ids = []
         for img in tweet["images"]:
             if os.path.exists(img):
-                # v2 requires using media endpoint differently
-                res = client.media_upload(filename=img)  # Adjust to correct v2 call if needed
-                media_ids.append(res.media_id)
+                res = api_v1.media_upload(filename=img)  # v1.1 upload
+                media_ids.append(res.media_id_string)
                 log(f"Uploaded image: {img}")
             else:
                 log(f"Image not found: {img}")
+
         if not media_ids:
             log(f"Skipping tweet (no images): {tweet['text']}")
             continue
+
         try:
-            status = client.create_tweet(text=tweet["text"], media_ids=media_ids)
+            status = client.create_tweet(text=tweet["text"], media_ids=media_ids)  # v2 post
             log(f"Tweet posted successfully: {status.data['id']}")
         except Exception as e:
             log(f"Failed to post tweet: {tweet['text']}\nError: {e}")
+
 
 # ---------------- Main ----------------
 if __name__ == "__main__":
