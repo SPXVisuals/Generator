@@ -110,8 +110,9 @@ def post_tweets():
         media_ids = []
         for img in tweet["images"]:
             if os.path.exists(img):
-                res = client.upload_media(img)
-                media_ids.append(res)
+                # v2 requires using media endpoint differently
+                res = client.media_upload(filename=img)  # Adjust to correct v2 call if needed
+                media_ids.append(res.media_id)
                 log(f"Uploaded image: {img}")
             else:
                 log(f"Image not found: {img}")
