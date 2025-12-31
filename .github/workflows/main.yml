@@ -28,20 +28,36 @@ jobs:
           pip install pandas yfinance matplotlib seaborn numpy tweepy
 
       # 4️⃣ Generate data and charts
-      # IMPORTANT: run from repo root
       - name: Generate data and charts
         run: |
           cd SPXVisuals
           python generate_data.py
-          
+
+      # 🔍 Debug: show working directory and output files
+      - name: Debug output paths
+        run: |
+          echo "PWD:"
+          pwd
+          echo ""
+          echo "Repo root contents:"
+          ls -la
+          echo ""
+          echo "SPXVisuals contents:"
+          ls -la SPXVisuals || true
+          echo ""
+          echo "Output tree:"
+          find SPXVisuals/output -type f || true
+
       # 5️⃣ Check if images exist
       - name: Check for images
         id: check_images
         run: |
           cd SPXVisuals
-          shopt -s nullglob
-          files=(output/normalized/*.png output/ma/*.png output/marketcap/*.png output/pe/*.png)
-          if [ ${#files[@]} -gt 0 ]; then
+          if ls output/normalized/*.png \
+                output/ma/*.png \
+                output/marketcap/*.png \
+                output/pe/*.png \
+                1> /dev/null 2>&1; then
             echo "Images found. Proceeding to post to X."
             echo "has_images=true" >> $GITHUB_OUTPUT
           else
@@ -49,27 +65,13 @@ jobs:
             echo "has_images=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Test Twitter auth
-        run: |
-          cd SPXVisuals
-          python test_twitter_auth.py
-
-      - name: Test basic tweet
-        env:
-          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
-          TWITTER_API_KEY_SECRET: ${{ secrets.TWITTER_API_SECRET }}
-          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
-        run: |
-          cd SPXVisuals
-          python test_tweet.py
-
-      # 6️⃣ Post to X only if images exist
+      # 6️⃣ Post to X (v2) only if images exist
       - name: Post to X
         if: ${{ steps.check_images.outputs.has_images == 'true' }}
         env:
+          TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
-          TWITTER_API_KEY_SECRET: ${{ secrets.TWITTER_API_KEY_SECRET }}
+          TWITTER_API_KEY_SECRET: ${{ secrets.TWITTER_API_SECRET }}
           TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
         run: |
