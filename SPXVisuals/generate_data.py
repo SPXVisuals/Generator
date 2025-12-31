@@ -22,11 +22,11 @@ EMA_PERIODS = [9, 20, 50, 200]
 SPX_TICKER = "^GSPC"
 
 OUTPUT_DIRS = [
-    "SPXVisuals/output/normalized",
-    "SPXVisuals/output/ma",
-    "SPXVisuals/output/marketcap",
-    "SPXVisuals/output/pe",
-    "SPXVisuals/output/metadata",
+    "output/normalized",
+    "output/ma",
+    "output/marketcap",
+    "output/pe",
+    "output/metadata",
 ]
 
 for d in OUTPUT_DIRS:
@@ -142,7 +142,7 @@ def plot_normalized_prices(sp500, ranks, tickers, timeframe):
             fontsize=14
         )
         plt.legend(fontsize=9)
-        path = f"SPXVisuals/output/normalized/{timeframe}_{i//10}.png"
+        path = f"output/normalized/{timeframe}_{i//10}.png"
         plt.savefig(path)
         plt.close()
         outputs.append(path)
@@ -222,7 +222,7 @@ def plot_pe_bar_charts_fixed(sp500, tickers):
         plt.title(title, fontsize=14)
         plt.xticks(rotation=90)
         plt.tight_layout()
-        path = f"SPXVisuals/output/pe/{fname}.png"
+        path = f"output/pe/{fname}.png"
         plt.savefig(path)
         plt.close()
         paths.append(path)
@@ -247,7 +247,7 @@ def plot_ma_simple(sp500, ranks, ticker, ma_type, timeframe):
         plt.plot(series, label=f"{ma_type}{p} (${series.iloc[-1]:.2f})")
     plt.title(f"{ticker} {ma_type} – #{ranks[ticker]} Largest by Market Capitalization - {timeframe}", fontsize=14)
     plt.legend(fontsize=9)
-    path = f"SPXVisuals/output/ma/{ticker}_{ma_type}_{timeframe}.png"
+    path = f"output/ma/{ticker}_{ma_type}_{timeframe}.png"
     plt.savefig(path)
     plt.close()
     log(f"Created SMA & EMA charts for {ticker}")
@@ -276,7 +276,7 @@ def run_today():
         ]
         # MarketCap charts
         for tickers, label in ranges:
-            path = f"SPXVisuals/output/marketcap/marketcap_{label}.png"
+            path = f"output/marketcap/marketcap_{label}.png"
             donut_chart_with_rest(
                 sp500,
                 tickers,
@@ -319,7 +319,7 @@ def run_today():
             })
 
     # Save metadata JSON
-    meta_path = f"SPXVisuals/output/metadata/posts_{datetime.now():%Y-%m-%d}.json"
+    meta_path = f"output/metadata/posts_{datetime.now():%Y-%m-%d}.json"
     with open(meta_path, "w") as f:
         json.dump(posts, f, indent=2)
     log(f"Saved metadata JSON: {meta_path}")
@@ -327,6 +327,7 @@ def run_today():
 
 if __name__ == "__main__":
     run_today()
+
 
 
 
