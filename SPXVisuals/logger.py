@@ -1,3 +1,4 @@
+# logger.py
 import os
 from datetime import datetime
 
@@ -9,4 +10,5 @@ def log(message):
     log_path = os.path.join(LOG_DIR, f"log_{datetime.now():%Y-%m-%d}.txt")
     with open(log_path, "a") as f:
         f.write(f"[{timestamp}] {message}\n")
-    print(f"[{timestamp}] {message}")  # also prints to GitHub Actions console
+    print(f"[{timestamp}] {message}")  # prints to console (useful in GitHub Actions)
+
