@@ -11,4 +11,3 @@ def log(message):
     with open(log_path, "a") as f:
         f.write(f"[{timestamp}] {message}\n")
     print(f"[{timestamp}] {message}")  # prints to console (useful in GitHub Actions)
-
