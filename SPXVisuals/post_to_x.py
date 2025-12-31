@@ -13,7 +13,7 @@ def build_tweet_text(post):
         hashtags.append(f"#{post['ticker']}")
 
     hashtags.extend([
-        "#SPX", "#S&P500", "#SP500", "#SAndP500",
+        "#SPX", "#SP500", "#SAndP500",
         "#Equities", "#Stocks", "#Market", "#StockMarket", "#Investing"
     ])
 
@@ -143,4 +143,5 @@ def post_tweets():
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
