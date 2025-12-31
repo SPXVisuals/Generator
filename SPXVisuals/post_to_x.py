@@ -111,9 +111,9 @@ def prepare_posts_for_tweeting(date=None):
 def post_tweets():
     # Read credentials from environment
     api_key = os.getenv("TWITTER_API_KEY")
-    api_secret = os.getenv("TWITTER_API_SECRET")
+    api_secret = os.getenv("TWITTER_API_KEY_SECRET")
     access_token = os.getenv("TWITTER_ACCESS_TOKEN")
-    access_secret = os.getenv("TWITTER_ACCESS_SECRET")
+    access_secret = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
 
     if not all([api_key, api_secret, access_token, access_secret]):
         log("Twitter credentials are missing. Set them in environment variables.")
@@ -144,6 +144,7 @@ def post_tweets():
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
