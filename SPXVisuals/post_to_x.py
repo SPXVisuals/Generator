@@ -82,7 +82,7 @@ def build_tweet_text(post):
 def load_posts_json(date=None):
     if date is None:
         date = datetime.now().strftime("%Y-%m-%d")
-    path = f"SPXVisuals/output/metadata/posts_{date}.json"
+    path = f"output/metadata/posts_{date}.json"
     if not os.path.exists(path):
         log(f"No JSON file found for {date} at {path}")
         return []
@@ -144,4 +144,5 @@ def post_tweets():
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
