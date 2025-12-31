@@ -1,9 +1,10 @@
 name: SPXVisuals Daily Run
 
+# Run every day at 11:00 AM EST (16:00 UTC)
 on:
   schedule:
-    - cron: '16 0 * * *'  # 16:00 UTC = 11:00 AM EST
-  workflow_dispatch:  # allows manual trigger
+    - cron: '16 0 * * *'
+  workflow_dispatch:  # manual trigger option
 
 jobs:
   build-and-run:
@@ -26,7 +27,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pandas yfinance matplotlib seaborn numpy tweepy
 
-      # 4️⃣ Run data generation
+      # 4️⃣ Generate data and charts
       - name: Generate data and charts
         run: |
           python generate_data.py
@@ -35,9 +36,8 @@ jobs:
       - name: Post to X
         env:
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
-          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_API_KEY_SECRET: ${{ secrets.TWITTER_API_SECRET }}
           TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
+          TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
         run: |
           python post_to_x.py
-
