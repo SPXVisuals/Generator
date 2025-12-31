@@ -33,7 +33,22 @@ jobs:
         run: |
           cd SPXVisuals
           python generate_data.py
-
+          
+# 🔍 Debug: show working directory and output files
+      - name: Debug output paths
+        run: |
+          echo "PWD:"
+          pwd
+          echo ""
+          echo "Repo root contents:"
+          ls -la
+          echo ""
+          echo "SPXVisuals contents:"
+          ls -la SPXVisuals || true
+          echo ""
+          echo "Output tree:"
+          find SPXVisuals/output -type f || true
+          
       # 5️⃣ Check if images exist
       - name: Check for images
         id: check_images
