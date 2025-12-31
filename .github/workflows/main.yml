@@ -36,7 +36,7 @@ jobs:
       - name: Check for images
         id: check_images
         run: |
-          if ls SPXVisuals/output/normalized/*.png output/ma/*.png output/marketcap/*.png output/pe/*.png 1> /dev/null 2>&1; then
+          if ls SPXVisuals/output/normalized/*.png SPXVisuals/output/ma/*.png SPXVisuals/output/marketcap/*.png SPXVisuals/output/pe/*.png 1> /dev/null 2>&1; then
             echo "Images found. Proceeding to post to X."
             echo "has_images=true" >> $GITHUB_OUTPUT
           else
