@@ -127,6 +127,8 @@ def post_tweets():
         try:
             media_ids = []
             for img in tweet["images"]:
+                abs_path = os.path.abspath(img)
+                log(f"Attempting to upload image: {img} -> {abs_path}")
                 if os.path.exists(img):
                     res = api.media_upload(img)
                     media_ids.append(res.media_id_string)
@@ -136,14 +138,17 @@ def post_tweets():
             if not media_ids:
                 log(f"Skipping tweet (no valid images): {tweet['text']}")
                 continue
+            log(f"Posting tweet: {tweet['text']}")
+            log(f"Media IDs to attach: {media_ids}")
             status = api.update_status(status=tweet["text"], media_ids=media_ids)
             log(f"Tweet posted successfully: {status.id}")
         except Exception as e:
-            log(f"Failed to post tweet: {tweet['text']}\nError: {e}")
+            log(f"Failed to post tweet: {tweet['text']}\nError: {e}\nTraceback:\n{traceback.format_exc()}")
 
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
