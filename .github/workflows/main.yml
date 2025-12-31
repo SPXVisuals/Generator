@@ -54,11 +54,9 @@ jobs:
         id: check_images
         run: |
           cd SPXVisuals
-          if ls output/normalized/*.png \
-                output/ma/*.png \
-                output/marketcap/*.png \
-                output/pe/*.png \
-                1> /dev/null 2>&1; then
+          shopt -s nullglob
+          files=(output/normalized/*.png output/ma/*.png output/marketcap/*.png output/pe/*.png)
+          if [ ${#files[@]} -gt 0 ]; then
             echo "Images found. Proceeding to post to X."
             echo "has_images=true" >> $GITHUB_OUTPUT
           else
