@@ -1,1 +1,43 @@
+name: SPXVisuals Daily Run
+
+on:
+  schedule:
+    - cron: '16 0 * * *'  # 16:00 UTC = 11:00 AM EST
+  workflow_dispatch:  # allows manual trigger
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout the repository
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # 2️⃣ Set up Python
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas yfinance matplotlib seaborn numpy tweepy
+
+      # 4️⃣ Run data generation
+      - name: Generate data and charts
+        run: |
+          python generate_data.py
+
+      # 5️⃣ Post to X (Twitter)
+      - name: Post to X
+        env:
+          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
+        run: |
+          python post_to_x.py
 
