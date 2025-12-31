@@ -49,6 +49,11 @@ jobs:
             echo "has_images=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Test Twitter auth
+        run: |
+          cd SPXVisuals
+          python test_twitter_auth.py
+
       - name: Test basic tweet
         env:
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
