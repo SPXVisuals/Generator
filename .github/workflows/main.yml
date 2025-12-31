@@ -30,8 +30,7 @@ jobs:
       # 4️⃣ Generate data and charts
       - name: Generate data and charts
         run: |
-          cd SPXVisuals
-          python generate_data.py
+          python SPXVisuals/generate_data.py
 
       # 5️⃣a Check if images exist
       - name: Check for images
