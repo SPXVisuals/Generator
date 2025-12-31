@@ -36,8 +36,7 @@ jobs:
       - name: Check for images
         id: check_images
         run: |
-          cd SPXVisuals
-          if ls output/normalized/*.png output/ma/*.png output/marketcap/*.png output/pe/*.png 1> /dev/null 2>&1; then
+          if ls SPXVisuals/output/normalized/*.png output/ma/*.png output/marketcap/*.png output/pe/*.png 1> /dev/null 2>&1; then
             echo "Images found. Proceeding to post to X."
             echo "has_images=true" >> $GITHUB_OUTPUT
           else
@@ -54,5 +53,4 @@ jobs:
           TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
         run: |
-          cd SPXVisuals
-          python post_to_x.py
+          python SPXVisuals/post_to_x.py
