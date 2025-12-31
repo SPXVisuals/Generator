@@ -261,7 +261,7 @@ def run_today():
     if not cfg:
         return
 
-    sp500 = load_holdings("sandpcomponents.csv")
+    sp500 = load_holdings("SPXVisuals/sandpcomponents.csv")
     fetch_market_data(sp500)
     ranked, ranks = rank_by_market_cap(sp500)
     top50 = ranked[:50]
@@ -327,6 +327,7 @@ def run_today():
 
 if __name__ == "__main__":
     run_today()
+
 
 
 
