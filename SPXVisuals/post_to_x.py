@@ -143,12 +143,18 @@ def post_tweets():
             log(f"Media IDs to attach: {media_ids}")
             status = api.update_status(status=tweet["text"], media_ids=media_ids)
             log(f"Tweet posted successfully: {status.id}")
+        except tweepy.errors.Forbidden as e:
+            # Log full Forbidden response for debugging
+            log(f"403 Forbidden when posting tweet: {tweet['text']}\nResponse text: {e.response.text}\nTraceback:\n{traceback.format_exc()}")
         except Exception as e:
+            # Catch other exceptions
             log(f"Failed to post tweet: {tweet['text']}\nError: {e}\nTraceback:\n{traceback.format_exc()}")
+
 
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
