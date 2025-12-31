@@ -1,6 +1,8 @@
 import os
 import json
 from datetime import datetime
+from logger import log
+import tweepy  # pip install tweepy
 
 # ---------------- Build tweet text ----------------
 def build_tweet_text(post):
@@ -47,9 +49,13 @@ def build_tweet_text(post):
         if idx_num == 0:
             range_text = "#1–#10"
         elif idx_num == 1:
-            range_text = "#11–#25"
+            range_text = "#11–#20"
         elif idx_num == 2:
-            range_text = "#26–#50"
+            range_text = "#21–#30"
+        elif idx_num == 3:
+            range_text = "#31–#40"
+        elif idx_num == 4:
+            range_text = "#41–#50"
 
     elif post["type"] == "marketcap" and post["images"]:
         fname = os.path.basename(post["images"][0])
@@ -81,10 +87,11 @@ def load_posts_json(date=None):
         date = datetime.now().strftime("%Y-%m-%d")
     path = f"output/metadata/posts_{date}.json"
     if not os.path.exists(path):
-        print(f"No JSON file found for {date} at {path}")
+        log(f"No JSON file found for {date} at {path}")
         return []
     with open(path, "r") as f:
         posts = json.load(f)
+    log(f"Loaded {len(posts)} posts from JSON")
     return posts
 
 
@@ -99,13 +106,54 @@ def prepare_posts_for_tweeting(date=None):
             "text": text,
             "images": images
         })
+    log(f"Prepared {len(tweets)} tweets")
     return tweets
+
+
+# ---------------- Post to X / Twitter ----------------
+def post_to_x(tweets):
+    # Use GitHub Secrets for keys
+    api_key = os.environ.get("TWITTER_API_KEY")
+    api_key_secret = os.environ.get("TWITTER_API_KEY_SECRET")
+    access_token = os.environ.get("TWITTER_ACCESS_TOKEN")
+    access_token_secret = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
+
+    if not all([api_key, api_key_secret, access_token, access_token_secret]):
+        log("Twitter API keys not set in environment variables.")
+        return
+
+    auth = tweepy.OAuth1UserHandler(api_key, api_key_secret, access_token, access_token_secret)
+    api = tweepy.API(auth)
+
+    for tweet in tweets:
+        text = tweet["text"]
+        images = tweet["images"]
+
+        # Skip if no images exist
+        if not images or not any(os.path.exists(img) for img in images):
+            log(f"Skipping tweet because no images found: {text[:50]}...")
+            continue
+
+        media_ids = []
+        for img in images:
+            if os.path.exists(img):
+                res = api.media_upload(img)
+                media_ids.append(res.media_id_string)
+                log(f"Uploaded image {img}")
+            else:
+                log(f"Image not found: {img}")
+
+        try:
+            api.update_status(status=text, media_ids=media_ids)
+            log(f"Posted tweet: {text[:50]}...")
+        except Exception as e:
+            log(f"Failed to post tweet: {text[:50]} | Error: {e}")
 
 
 # ---------------- Example usage ----------------
 if __name__ == "__main__":
     tweets_to_post = prepare_posts_for_tweeting()
-    for tweet in tweets_to_post:
-        print("TEXT:", tweet["text"])
-        print("IMAGES:", tweet["images"])
-        print("-" * 50)
+    if tweets_to_post:
+        post_to_x(tweets_to_post)
+    else:
+        log("No tweets to post today.")
