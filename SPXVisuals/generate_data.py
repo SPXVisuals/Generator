@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
 import seaborn as sns
+from logger import log
 
 plt.rcParams["figure.autolayout"] = True
 sns.set_style("whitegrid")
@@ -63,6 +64,7 @@ def get_days_to_plot(timeframe, close_series=None):
 
 # ---------------- LOAD HOLDINGS ----------------
 def load_holdings(csv_path):
+    log(f"Loading holdings from sandpcomponents.csv")
     df = pd.read_csv(csv_path)
     df["Symbol"] = df["Symbol"].astype(str).str.strip()
     sp500 = {}
@@ -75,6 +77,7 @@ def load_holdings(csv_path):
             "Sector": row.get("GICS Sector", "Unknown"),
             "SubIndustry": row.get("GICS Sub-Industry", "Unknown"),
         }
+    log(f"Loaded {len(sp500)} tickers")
     return sp500
 
 # ---------------- FETCH MARKET DATA ----------------
@@ -82,6 +85,7 @@ def fetch_market_data(sp500):
     for t in sp500:
         try:
             tk = yf.Ticker(t)
+            log(f"Fetching data for {t}")
             info = tk.info or {}
             price = info.get("regularMarketPrice")
             shares = info.get("sharesOutstanding")
@@ -97,7 +101,9 @@ def fetch_market_data(sp500):
                 sp500[t][f"SMA{p}"] = close.rolling(p).mean()
             for p in EMA_PERIODS:
                 sp500[t][f"EMA{p}"] = close.ewm(span=p, adjust=False).mean()
+            log(f"Successfully fetched data for {t}")
         except Exception:
+            log(f"Failed fetching {t}: {Exception}")
             continue
 
 # ---------------- RANKING ----------------
@@ -184,6 +190,7 @@ def donut_chart_with_rest(sp500, tickers, title, sp500_total_mc, path):
     )
     ax.set_title(title, fontsize=14)
     plt.savefig(path)
+    log(f"Created marketcap chart: {path}")
     plt.close()
 
 # ---------------- P/E BAR CHARTS ----------------
@@ -221,6 +228,7 @@ def plot_pe_bar_charts_fixed(sp500, tickers):
         paths.append(path)
     plot_metric("trailingPE", "Trailing P/E – #1 - #50 Largest by Market Capitalization", "P/E", "pe_trailing")
     plot_metric("forwardPE", "Forward P/E – #1 - #50 Largest by Market Capitalization", "Forward P/E", "pe_forward")
+    log(f"Created P/E chart: {paths}")
     return paths
 
 # ---------------- SMA / EMA CHARTS ----------------
@@ -242,11 +250,13 @@ def plot_ma_simple(sp500, ranks, ticker, ma_type, timeframe):
     path = f"output/ma/{ticker}_{ma_type}_{timeframe}.png"
     plt.savefig(path)
     plt.close()
+    log(f"Created SMA & EMA charts for {ticker}")
     return path
 
 # ---------------- RUN TODAY ----------------
 def run_today():
     day = datetime.now().strftime("%A")
+    log(f"Starting run_today() for {day}")
     cfg = SCHEDULE.get(day)
     if not cfg:
         return
@@ -312,6 +322,11 @@ def run_today():
     meta_path = f"output/metadata/posts_{datetime.now():%Y-%m-%d}.json"
     with open(meta_path, "w") as f:
         json.dump(posts, f, indent=2)
+    log(f"Saved metadata JSON: {meta_path}")
+    log("run_today() completed")
 
 if __name__ == "__main__":
     run_today()
+
+
+
