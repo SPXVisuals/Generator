@@ -27,6 +27,7 @@ OUTPUT_DIRS = [
     "output/marketcap",
     "output/pe",
     "output/metadata",
+    "output/leaders_laggards"
 ]
 
 for d in OUTPUT_DIRS:
@@ -106,6 +107,7 @@ def fetch_market_data(sp500):
             log(f"Failed fetching {t}: {Exception}")
             continue
 
+
 # ---------------- RANKING ----------------
 def rank_by_market_cap(sp500):
     ranked = sorted(
@@ -115,6 +117,77 @@ def rank_by_market_cap(sp500):
     )
     ranks = {t: i + 1 for i, t in enumerate(ranked)}
     return ranked, ranks
+
+# SPX period performance
+def compute_spx_performance(timeframe):
+    # 1. Download SPX historical prices (10y already allowed by your config)
+    spx_close = yf.Ticker(SPX_TICKER).history(
+        period=HISTORY_PERIOD
+    )["Close"]
+
+    # 2. Slice to the active timeframe (same logic as stocks)
+    spx_period = get_days_to_plot(timeframe, spx_close)
+
+    # 3. Guard against empty data
+    if len(spx_period) < 2:
+        return None
+
+    # 4. Price at start vs end of timeframe
+    spx_then = spx_period.iloc[0]
+    spx_now = spx_period.iloc[-1]
+
+    # 5. Absolute index point change
+    spx_change = spx_now - spx_then
+
+    # 6. Percent change
+    spx_pct = (spx_now / spx_then - 1) * 100
+
+    return {
+        "spx_then": spx_then,
+        "spx_now": spx_now,
+        "spx_change": spx_change,
+        "spx_pct": spx_pct
+    }
+
+# Period Performance
+def compute_period_performance(sp500, timeframe):
+    rows = []
+
+    spx_perf = compute_spx_performance(timeframe)
+
+    for t, d in sp500.items():
+        close = d.get("close")
+        price_now = d.get("price")
+
+        if close is None or price_now is None or close.empty:
+            continue
+
+        period_close = get_days_to_plot(timeframe, close)
+
+        if len(period_close) < 2:
+            continue
+
+        price_then = period_close.iloc[0]
+        price_now_hist = period_close.iloc[-1]
+
+        change = price_now_hist - price_then
+        pct_change = (price_now_hist / price_then - 1) * 100
+
+        rows.append({
+            "Ticker": t,
+            "Beginning Price": price_then,
+            "Current Price": price_now,
+            "Change In Price": change,
+            "Percent Change": pct_change,
+
+            # ── SAME SPX VALUES FOR ALL ROWS ──
+            "SPX Change": spx_perf["spx_change"],
+            "SPX Percent Change": spx_perf["spx_pct"]
+        })
+
+    df = pd.DataFrame(rows)
+    return df
+
 
 # ---------------- NORMALIZED PRICE CHARTS ----------------
 def plot_normalized_prices(sp500, ranks, tickers, timeframe):
@@ -253,6 +326,99 @@ def plot_ma_simple(sp500, ranks, ticker, ma_type, timeframe):
     log(f"Created SMA & EMA charts for {ticker}")
     return path
 
+def plot_gainers_losers(df, timeframe, spx_perf):
+    df = df.sort_values("Percent Change", ascending=False)
+
+    gainers = df.head(20)
+    losers = df.tail(20).sort_values("Percent Change")
+
+    # ── Figure layout ───────────────────────────────────────────
+    fig = plt.figure(figsize=(22, 11), dpi=150)
+    gs = fig.add_gridspec(
+        nrows=2,
+        ncols=2,
+        height_ratios=[0.15, 0.85],
+        hspace=0.05
+    )
+
+    # ── SPX header (spans both columns) ─────────────────────────
+    ax_spx = fig.add_subplot(gs[0, :])
+    ax_spx.set_axis_off()
+
+    ax_spx.text(
+        0.5,
+        0.5,
+        "SPX Performance Over Period: "
+        f"{spx_perf['spx_change']:+.2f} Points "
+        f"{spx_perf['spx_pct']:+.2f}%",
+        ha="center",
+        va="center",
+        fontsize=16,
+        weight="bold"
+    )
+
+    # ── Table axes ──────────────────────────────────────────────
+    ax_g = fig.add_subplot(gs[1, 0])
+    ax_l = fig.add_subplot(gs[1, 1])
+
+    def draw_table(ax, data, title, title_color):
+        ax.set_axis_off()
+
+        table_data = []
+        for _, r in data.iterrows():
+            table_data.append([
+                r["Ticker"],
+                f"${r[f'Beginning Price']:.2f}",
+                f"${r['Current Price']:.2f}",
+                f"{r['Change In Price']:+.2f}",
+                f"{r['Percent Change']:+.2f}%"
+            ])
+
+        col_labels = [
+            "Ticker",
+            "Current Price",
+            "Beginning Price",
+            "Change In Price ($)",
+            "Percent Change"
+        ]
+
+        table = ax.table(
+            cellText=table_data,
+            colLabels=col_labels,
+            cellLoc="center",
+            loc="center"
+        )
+
+        table.auto_set_font_size(False)
+        table.set_fontsize(9)
+        table.scale(1, 1.6)
+
+        ax.set_title(
+            title,
+            fontsize=15,
+            weight="bold",
+            color=title_color,
+            pad=12
+        )
+
+    draw_table(ax_g, gainers, "GAINERS", "green")
+    draw_table(ax_l, losers, "LOSERS", "red")
+
+    # ── Global title ────────────────────────────────────────────
+    plt.suptitle(
+        f"S&P 500 Performance Leaders & Laggards - {timeframe}",
+        fontsize=18,
+        weight="bold",
+        y=0.97
+    )
+
+    path = f"output/leaders_laggards/gainers_losers_{timeframe}.png"
+    plt.savefig(path)
+    plt.close()
+
+    log(f"Created gainers/losers chart: {path}")
+    return path
+
 # ---------------- RUN TODAY ----------------
 def run_today():
     day = datetime.now().strftime("%A")
@@ -297,6 +463,19 @@ def run_today():
 
     else:
         timeframe = cfg["timeframe"]
+
+        # Gainers And Losers
+        perf_df = compute_period_performance(sp500, timeframe)
+        spx_perf = compute_spx_performance(timeframe)
+
+        gl_path = plot_gainers_losers(perf_df, timeframe, spx_perf)
+
+        posts.append({
+            "type": "gainers_losers",
+            "images": [gl_path],
+            "timeframe": timeframe
+        })
+
         # Normalized price charts
         for i, path in enumerate(plot_normalized_prices(sp500, ranks, top50, timeframe)):
             start_idx = i * 10
@@ -307,6 +486,7 @@ def run_today():
                 "images": [path],
                 "label": label
             })
+
         # MA / EMA charts
         for t in top50[:10]:
             posts.append({
