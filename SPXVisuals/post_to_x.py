@@ -134,7 +134,7 @@ def post_tweets():
         try:
             status = client.create_tweet(text=tweet["text"], media_ids=media_ids)  # v2 post
             log(f"Tweet posted successfully: {status.data['id']}")
-            time.sleep(10)
+            time.sleep(300)
         except Exception as e:
             log(f"Failed to post tweet: {tweet['text']}\nError: {e}")
 
@@ -142,6 +142,7 @@ def post_tweets():
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
