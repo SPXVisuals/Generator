@@ -138,11 +138,36 @@ def post_tweets():
             time.sleep(random.randint(180, 300))  # 3–5 minutes
         except Exception as e:
             log(f"Failed to post tweet: {tweet['text']}\nError: {e}")
+            # Try to extract full HTTP info if available
+            if hasattr(e, "response") and e.response is not None:
+                resp = e.response
+                headers = dict(resp.headers)
+                status = getattr(resp, "status_code", None)
+                body = getattr(resp, "text", None)
+
+            # Log basic info
+            log(f"HTTP status: {status}")
+            log(f"Response body: {body}")
+            log(f"All headers: {headers}")
+
+            # Log rate-limit headers if present
+            rate_headers = {k: v for k, v in headers.items() if "x-rate-limit" in k.lower()}
+            log(f"Rate-limit headers: {rate_headers}")
+
+            # Optional: human-readable reset time
+            reset_ts = rate_headers.get("x-rate-limit-reset")
+            if reset_ts:
+                from datetime import datetime
+                readable = datetime.fromtimestamp(int(reset_ts)).strftime("%Y-%m-%d %H:%M:%S")
+                log(f"Rate limit resets at: {readable}")
+        else:
+            log("No HTTP response available in exception, cannot show headers or rate-limit info.")
 
 
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
