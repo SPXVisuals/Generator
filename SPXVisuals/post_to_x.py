@@ -22,7 +22,8 @@ def build_tweet_text(post):
         "ma": "#SMA #EMA",
         "normalized": "#PriceChart",
         "marketcap": "#MarketCap",
-        "pe": "#PE"
+        "pe": "#PE",
+        "gainers_losers": "#MarketLeaders #MarketLaggards"
     }
     hashtags.append(type_tag_map.get(post["type"], ""))
     hashtags_text = " ".join(hashtags)
@@ -59,6 +60,11 @@ def build_tweet_text(post):
     elif post["type"] == "pe":
         pe_type = "Trailing" if "trailing" in post.get("images", [""])[0] else "Forward"
         return f"{pe_type} P/E chart for the 50 Largest S&P 500 stocks 📊 {hashtags_text}"
+    elif post["type"] == "gainers_losers":
+        timeframe = post.get("timeframe", "")
+        return (
+            f"{timeframe} - S&P 500 Performance Leaders vs Laggards 📋 {hashtags_text}"
+        )
     else:
         return hashtags_text
 
