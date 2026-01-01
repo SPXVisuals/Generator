@@ -308,7 +308,7 @@ def run_today():
                 "label": label
             })
         # MA / EMA charts
-        for t in top50[:15]:
+        for t in top50[:10]:
             posts.append({
                 "type": "ma",
                 "ticker": t,
@@ -327,6 +327,7 @@ def run_today():
 
 if __name__ == "__main__":
     run_today()
+
 
 
 
