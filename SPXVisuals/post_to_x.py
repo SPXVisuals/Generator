@@ -54,16 +54,16 @@ def build_tweet_text(post):
     if post["type"] == "ma":
         return f"{timeframe_text} - {post['ticker']} SMA & EMA charts 📈 {hashtags_text}"
     elif post["type"] == "normalized":
-        return f"{timeframe_text} - Normalized price chart for {range_text} Largest S&P 500 Index Components 📈 {hashtags_text}"
+        return f"{timeframe_text} - Normalized Price Chart For The {range_text} Largest S&P 500 Index Components 📈 {hashtags_text}"
     elif post["type"] == "marketcap":
-        return f"Market capitalization distribution chart for {range_text} Largest S&P 500 Index Components 🥧 {hashtags_text}"
+        return f"Market Capitalization Distribution Chart For The {range_text} Largest S&P 500 Index Components 🥧 {hashtags_text}"
     elif post["type"] == "pe":
         pe_type = "Trailing" if "trailing" in post.get("images", [""])[0] else "Forward"
         return f"{pe_type} P/E chart for the 50 Largest S&P 500 stocks 📊 {hashtags_text}"
     elif post["type"] == "gainers_losers":
         timeframe = post.get("timeframe", "")
         return (
-            f"{timeframe} - S&P 500 Performance Leaders vs Laggards 📋 {hashtags_text}"
+            f"{timeframe} - S&P 500 Performance Leaders & Laggards 📋 {hashtags_text}"
         )
     else:
         return hashtags_text
@@ -173,6 +173,7 @@ def post_tweets():
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
