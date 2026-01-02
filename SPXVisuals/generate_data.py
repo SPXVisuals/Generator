@@ -9,6 +9,7 @@ import numpy as np
 from datetime import datetime
 import seaborn as sns
 from logger import log
+import random
 
 plt.rcParams["figure.autolayout"] = True
 sns.set_style("whitegrid")
@@ -32,6 +33,8 @@ OUTPUT_DIRS = [
 
 for d in OUTPUT_DIRS:
     os.makedirs(d, exist_ok=True)
+
+SMA_EMA_TIMEFRAME = "1y"
 
 SCHEDULE = {
     "Monday":    {"timeframe": "3y"},
@@ -103,8 +106,8 @@ def fetch_market_data(sp500):
             for p in EMA_PERIODS:
                 sp500[t][f"EMA{p}"] = close.ewm(span=p, adjust=False).mean()
             log(f"Successfully fetched data for {t}")
-        except Exception:
-            log(f"Failed fetching {t}: {Exception}")
+        except Exception as e:
+            log(f"Failed fetching {t}: {e}")
             continue
 
 
@@ -211,7 +214,7 @@ def plot_normalized_prices(sp500, ranks, tickers, timeframe):
         for t, norm, pct in perf:
             plt.plot(norm, label=f"{t} ({pct:+.2f}%) (#{ranks[t]} Market Cap)")
         plt.title(
-            f"Normalized Prices - #{ranks[group[0]]} - #{ranks[group[-1]]} Largest by Market Capitalization",
+            f"{timeframe} - Normalized Prices - #{ranks[group[0]]} - #{ranks[group[-1]]} Largest By Market Capitalization",
             fontsize=14
         )
         plt.legend(fontsize=9)
@@ -299,8 +302,8 @@ def plot_pe_bar_charts_fixed(sp500, tickers):
         plt.savefig(path)
         plt.close()
         paths.append(path)
-    plot_metric("trailingPE", "Trailing P/E – #1 - #50 Largest by Market Capitalization", "P/E", "pe_trailing")
-    plot_metric("forwardPE", "Forward P/E – #1 - #50 Largest by Market Capitalization", "Forward P/E", "pe_forward")
+    plot_metric("trailingPE", "Trailing P/E – #1 - #50 Largest By Market Capitalization", "P/E", "pe_trailing")
+    plot_metric("forwardPE", "Forward P/E – #1 - #50 Largest By Market Capitalization", "Forward P/E", "pe_forward")
     log(f"Created P/E chart: {paths}")
     return paths
 
@@ -318,7 +321,7 @@ def plot_ma_simple(sp500, ranks, ticker, ma_type, timeframe):
     for p in periods:
         series = get_days_to_plot(timeframe, d[f"{ma_type}{p}"])
         plt.plot(series, label=f"{ma_type}{p} (${series.iloc[-1]:.2f})")
-    plt.title(f"{ticker} {ma_type} – #{ranks[ticker]} Largest by Market Capitalization - {timeframe}", fontsize=14)
+    plt.title(f"{timeframe} - {ticker} {ma_type} – #{ranks[ticker]} Largest By Market Capitalization", fontsize=14)
     plt.legend(fontsize=9)
     path = f"output/ma/{ticker}_{ma_type}_{timeframe}.png"
     plt.savefig(path)
@@ -434,14 +437,14 @@ def plot_gainers_losers(df, timeframe, spx_perf):
 
     # ── Global title ────────────────────────────────────────────
     plt.suptitle(
-        f"S&P 500 Performance Leaders & Laggards - {timeframe}",
+        f"{timeframe} - S&P 500 Performance Leaders & Laggards",
         fontsize=17,
         weight="bold",
         y=0.97
     )
 
     path = f"output/leaders_laggards/gainers_losers_{timeframe}.png"
-    plt.savefig(path, bbox_inches="tight", pad_inches=0.15)
+    plt.savefig(path, pad_inches=0.15)
     plt.close()
 
     log(f"Created gainers/losers chart: {path}")
@@ -460,6 +463,7 @@ def run_today():
     fetch_market_data(sp500)
     ranked, ranks = rank_by_market_cap(sp500)
     top50 = ranked[:50]
+    top40 = ranked[:40]
     posts = []
 
     if cfg.get("fundamentals"):
@@ -475,7 +479,7 @@ def run_today():
             donut_chart_with_rest(
                 sp500,
                 tickers,
-                f"Market Capitalization Distribution – #{label.replace('_',' – #')} Largest by Market Cap",
+                f"Market Capitalization Distribution – #{label.replace('_',' – #')} Largest By Market Cap",
                 total_mc,
                 path
             )
@@ -506,24 +510,21 @@ def run_today():
         })
 
         # Normalized price charts
-        for i, path in enumerate(plot_normalized_prices(sp500, ranks, top50, timeframe)):
-            start_idx = i * 10
-            end_idx = min((i + 1) * 10, len(top50))
-            label = f"{start_idx + 1}_{end_idx}"
-            posts.append({
-                "type": "normalized",
-                "images": [path],
-                "label": label
-            })
+        norm_paths = plot_normalized_prices(sp500, ranks, top40, timeframe)
+        posts.append({
+            "type": "normalized",
+            "images": norm_paths,
+            "label": "1_40"
+        })
 
-        # MA / EMA charts
-        for t in top50[:10]:
+        # SMA / EMA charts
+        for t in random.sample(ranked, k=3):
             posts.append({
                 "type": "ma",
                 "ticker": t,
                 "images": [
-                    plot_ma_simple(sp500, ranks, t, "SMA", timeframe),
-                    plot_ma_simple(sp500, ranks, t, "EMA", timeframe),
+                    plot_ma_simple(sp500, ranks, t, "SMA", SMA_EMA_TIMEFRAME),
+                    plot_ma_simple(sp500, ranks, t, "EMA", SMA_EMA_TIMEFRAME),
                 ]
             })
 
