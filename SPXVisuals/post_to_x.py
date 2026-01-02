@@ -38,9 +38,6 @@ def build_tweet_text(post):
     elif post["type"] == "normalized" and post["images"]:
         fname = os.path.basename(post["images"][0])
         timeframe_text = fname.split("_")[0]
-        idx_num = int(fname.split("_")[1].split(".")[0])
-        ranges = ["#1–#10", "#11–#20", "#21–#30", "#31–#40", "#41–#50"]
-        range_text = ranges[idx_num] if idx_num < len(ranges) else ""
     elif post["type"] == "marketcap" and post["images"]:
         fname = os.path.basename(post["images"][0])
         if "1_10" in fname:
@@ -54,7 +51,7 @@ def build_tweet_text(post):
     if post["type"] == "ma":
         return f"{timeframe_text} - {post['ticker']} SMA & EMA charts 📈 {hashtags_text}"
     elif post["type"] == "normalized":
-        return f"{timeframe_text} - Normalized Price Chart For The {range_text} Largest S&P 500 Index Components 📈 {hashtags_text}"
+        return f"{timeframe_text} - Normalized Price Chart For The 40 Largest S&P 500 Index Components 📈 {hashtags_text}"
     elif post["type"] == "marketcap":
         return f"Market Capitalization Distribution Chart For The {range_text} Largest S&P 500 Index Components 🥧 {hashtags_text}"
     elif post["type"] == "pe":
@@ -63,7 +60,7 @@ def build_tweet_text(post):
     elif post["type"] == "gainers_losers":
         timeframe = post.get("timeframe", "")
         return (
-            f"{timeframe} - S&P 500 Performance Leaders & Laggards 📋 {hashtags_text}"
+            f"{timeframe} - S&P 500 Performance Leaders vs Laggards 📋 {hashtags_text}"
         )
     else:
         return hashtags_text
@@ -123,6 +120,7 @@ def post_tweets():
         access_token_secret=access_secret
     )
 
+    time.sleep(random.randint(0, 30 * 60))
     tweets = prepare_posts_for_tweeting()
     for tweet in tweets:
         media_ids = []
@@ -141,7 +139,7 @@ def post_tweets():
         try:
             status = client.create_tweet(text=tweet["text"], media_ids=media_ids)  # v2 post
             log(f"Tweet posted successfully: {status.data['id']}")
-            time.sleep(random.randint(180, 300))  # 3–5 minutes
+            time.sleep(random.randint(25 * 60, 45 * 60))
         except Exception as e:
             log(f"Failed to post tweet: {tweet['text']}\nError: {e}")
             # Try to extract full HTTP info if available
@@ -173,7 +171,6 @@ def post_tweets():
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
-
 
 
 
