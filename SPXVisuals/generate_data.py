@@ -329,32 +329,45 @@ def plot_ma_simple(sp500, ranks, ticker, ma_type, timeframe):
 def plot_gainers_losers(df, timeframe, spx_perf):
     df = df.sort_values("Percent Change", ascending=False)
 
-    gainers = df.head(20)
-    losers = df.tail(20).sort_values("Percent Change")
+    gainers = df.head(25)
+    losers = df.tail(25).sort_values("Percent Change")
 
     # ── Figure layout ───────────────────────────────────────────
     fig = plt.figure(figsize=(22, 11), dpi=150)
     gs = fig.add_gridspec(
         nrows=2,
         ncols=2,
-        height_ratios=[0.15, 0.85],
-        hspace=0.05
+        height_ratios=[0.05, 0.95],
+        hspace=0.01,
+        wspace=0.04
+    )
+
+    fig.subplots_adjust(
+        left=0.02,
+        right=0.98,
+        top=0.93,
+        bottom=0.04
     )
 
     # ── SPX header (spans both columns) ─────────────────────────
     ax_spx = fig.add_subplot(gs[0, :])
     ax_spx.set_axis_off()
 
+    # Draw SPX performance, centered, no arrows
+    spx_then = spx_perf["spx_then"]
+    spx_now = spx_perf["spx_now"]
+    spx_change = spx_now - spx_then
+    spx_pct = spx_change / spx_then * 100  # consistent sign with spx_change
+
     ax_spx.text(
         0.5,
         0.5,
-        "SPX Performance Over Period: "
-        f"{spx_perf['spx_change']:+.2f} Points "
-        f"{spx_perf['spx_pct']:+.2f}%",
+        f"SPX Performance Over The Period: {spx_change:+.2f} Points {spx_pct:+.2f}%",
         ha="center",
         va="center",
-        fontsize=16,
-        weight="bold"
+        fontsize=15,
+        weight="bold",
+        color="black"
     )
 
     # ── Table axes ──────────────────────────────────────────────
@@ -376,8 +389,8 @@ def plot_gainers_losers(df, timeframe, spx_perf):
 
         col_labels = [
             "Ticker",
-            "Current Price",
             "Beginning Price",
+            "Current Price",
             "Change In Price ($)",
             "Percent Change"
         ]
@@ -386,38 +399,54 @@ def plot_gainers_losers(df, timeframe, spx_perf):
             cellText=table_data,
             colLabels=col_labels,
             cellLoc="center",
-            loc="center"
+            loc="upper center",
+            colWidths=[0.12, 0.18, 0.18, 0.22, 0.18]
         )
 
         table.auto_set_font_size(False)
-        table.set_fontsize(9)
-        table.scale(1, 1.6)
+        table.set_fontsize(13)
+        table.scale(1.0, 1.9)
+
+        # ── Make headers bold with subtle background ─────────────
+        for col in range(len(col_labels)):
+            header = table[(0, col)]
+            header.set_text_props(weight="bold")
+            header.set_facecolor("#e6e6e6")
+
+        # Color the change columns green/red
+        for row in range(1, len(table_data) + 1):
+            change_value = float(data.iloc[row - 1]["Change In Price"])
+            pct_value = float(data.iloc[row - 1]["Percent Change"])
+
+            table[(row, 3)].get_text().set_color("#2E7D32" if change_value > 0 else "#C62828")
+            table[(row, 4)].get_text().set_color("#2E7D32" if pct_value > 0 else "#C62828")
 
         ax.set_title(
             title,
             fontsize=15,
             weight="bold",
             color=title_color,
-            pad=12
+            pad=6
         )
 
-    draw_table(ax_g, gainers, "GAINERS", "green")
-    draw_table(ax_l, losers, "LOSERS", "red")
+    draw_table(ax_g, gainers, "GAINERS", "black")
+    draw_table(ax_l, losers, "LOSERS", "black")
 
     # ── Global title ────────────────────────────────────────────
     plt.suptitle(
         f"S&P 500 Performance Leaders & Laggards - {timeframe}",
-        fontsize=18,
+        fontsize=17,
         weight="bold",
         y=0.97
     )
 
     path = f"output/leaders_laggards/gainers_losers_{timeframe}.png"
-    plt.savefig(path)
+    plt.savefig(path, bbox_inches="tight", pad_inches=0.15)
     plt.close()
 
     log(f"Created gainers/losers chart: {path}")
     return path
+
 
 # ---------------- RUN TODAY ----------------
 def run_today():
@@ -507,10 +536,6 @@ def run_today():
 
 if __name__ == "__main__":
     run_today()
-
-
-
-
 
 
 
