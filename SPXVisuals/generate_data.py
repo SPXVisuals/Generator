@@ -3,7 +3,6 @@ import json
 import pandas as pd
 import yfinance as yf
 import matplotlib
-
 matplotlib.use("Agg")  # headless plotting
 import matplotlib.pyplot as plt
 import numpy as np
@@ -534,3 +533,4 @@ def run_today():
 
 if __name__ == "__main__":
     run_today()
+
