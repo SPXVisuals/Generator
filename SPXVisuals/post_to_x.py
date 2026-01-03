@@ -163,10 +163,3 @@ def post_tweets():
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
-
-
-
-
-
-
-
