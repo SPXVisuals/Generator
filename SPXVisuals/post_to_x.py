@@ -28,7 +28,7 @@ def build_tweet_text(post):
     hashtags.append(type_tag_map.get(post["type"], ""))
     hashtags_text = " ".join(hashtags)
 
-    timeframe_text, range_text = "", ""
+    timeframe_text = ""
 
     if post["type"] == "ma" and post["images"]:
         fname = os.path.basename(post["images"][0])
@@ -38,29 +38,21 @@ def build_tweet_text(post):
     elif post["type"] == "normalized" and post["images"]:
         fname = os.path.basename(post["images"][0])
         timeframe_text = fname.split("_")[0]
-    elif post["type"] == "marketcap" and post["images"]:
-        fname = os.path.basename(post["images"][0])
-        if "1_10" in fname:
-            range_text = "#1–#10"
-        elif "11_25" in fname:
-            range_text = "#11–#25"
-        elif "26_50" in fname:
-            range_text = "#26–#50"
 
     # Build text per type
     if post["type"] == "ma":
-        return f"{timeframe_text} - {post['ticker']} SMA & EMA charts 📈 {hashtags_text}"
+        return f"{timeframe_text} - {post['ticker']} SMA & EMA Charts 📈 {hashtags_text}"
     elif post["type"] == "normalized":
-        return f"{timeframe_text} - Normalized Price Chart For The 40 Largest S&P 500 Index Components 📈 {hashtags_text}"
+        return f"{timeframe_text} - Normalized Price Charts For The 40 Largest S&P 500 Index Components 📈 {hashtags_text}"
     elif post["type"] == "marketcap":
-        return f"Market Capitalization Distribution Chart For The {range_text} Largest S&P 500 Index Components 🥧 {hashtags_text}"
+        return f"Market Capitalization Distribution Charts For The 50 Largest S&P 500 Index Components 🥧 {hashtags_text}"
     elif post["type"] == "pe":
         pe_type = "Trailing" if "trailing" in post.get("images", [""])[0] else "Forward"
-        return f"{pe_type} P/E chart for the 50 Largest S&P 500 stocks 📊 {hashtags_text}"
+        return f"{pe_type} P/E Chart For The 50 Largest S&P 500 Index Components 📊 {hashtags_text}"
     elif post["type"] == "gainers_losers":
         timeframe = post.get("timeframe", "")
         return (
-            f"{timeframe} - S&P 500 Performance Leaders vs Laggards 📋 {hashtags_text}"
+            f"{timeframe} - S&P 500 Index Components' Performance Leaders vs Laggards 📋 {hashtags_text}"
         )
     else:
         return hashtags_text
