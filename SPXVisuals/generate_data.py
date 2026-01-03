@@ -534,4 +534,3 @@ def run_today():
 
 if __name__ == "__main__":
     run_today()
-
