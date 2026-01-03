@@ -17,6 +17,7 @@ sns.set_style("whitegrid")
 
 # ---------------- CONFIG ----------------
 HISTORY_PERIOD = "10y"
+SMA_EMA_TIMEFRAME = "1y"
 
 SMA_PERIODS = [20, 50, 100, 200]
 EMA_PERIODS = [9, 20, 50, 200]
@@ -34,8 +35,6 @@ OUTPUT_DIRS = [
 
 for d in OUTPUT_DIRS:
     os.makedirs(d, exist_ok=True)
-
-SMA_EMA_TIMEFRAME = "1y"
 
 SCHEDULE = {
     "Monday": {"timeframe": "3y"},
@@ -535,3 +534,4 @@ def run_today():
 
 if __name__ == "__main__":
     run_today()
+
