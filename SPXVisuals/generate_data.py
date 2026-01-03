@@ -474,6 +474,7 @@ def run_today():
             (top50[25:50], "26_50"),
         ]
         # MarketCap charts
+        marketcap_images = []
         for tickers, label in ranges:
             path = f"output/marketcap/marketcap_{label}.png"
             donut_chart_with_rest(
@@ -483,11 +484,13 @@ def run_today():
                 total_mc,
                 path
             )
-            posts.append({
-                "type": "marketcap",
-                "images": [path],
-                "label": label
+            marketcap_images.append(path)
+        posts.append({
+            "type": "marketcap",
+            "images": marketcap_images,
+            "label": "1_50"
             })
+
         # P/E charts
         pe_paths = plot_pe_bar_charts_fixed(sp500, top50)
         if pe_paths:
@@ -537,7 +540,3 @@ def run_today():
 
 if __name__ == "__main__":
     run_today()
-
-
-
-
