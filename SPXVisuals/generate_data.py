@@ -61,7 +61,7 @@ def get_days_to_plot(timeframe, close_series=None):
         "3y": 756
     }
     if timeframe == "YTD" and close_series is not None:
-        year_start = datetime(datetime.now().year, 1, 1)
+        year_start = pd.Timestamp(f"{datetime.now().year}-01-01",tz=close_series.index.tz)
         return close_series[close_series.index >= year_start]
     days = mapping.get(timeframe, 252)
     return close_series.iloc[-days:]
