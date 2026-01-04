@@ -21,7 +21,7 @@ def build_tweet_text(post):
     type_tag_map = {
         "ma": "#SMA #EMA",
         "normalized": "#PriceChart",
-        "marketcap": "#MarketCap",
+        "marketcap": "#MarketCapitalization #MarketCap",
         "pe": "#PE",
         "gainers_losers": "#MarketLeaders #MarketLaggards"
     }
@@ -45,7 +45,7 @@ def build_tweet_text(post):
     elif post["type"] == "normalized":
         return f"{timeframe_text} - Normalized Price Charts For The 40 Largest S&P 500 Index Components 📈 {hashtags_text}"
     elif post["type"] == "marketcap":
-        return f"Market Capitalization Distribution Charts For The 50 Largest S&P 500 Index Components 🥧 {hashtags_text}"
+        return f"Market Capitalization Distribution Charts For The 50 Largest S&P 500 Index Components 🍩 📊 {hashtags_text}"
     elif post["type"] == "pe":
         pe_type = "Trailing" if "trailing" in post.get("images", [""])[0] else "Forward"
         return f"{pe_type} P/E Chart For The 50 Largest S&P 500 Index Components 📊 {hashtags_text}"
@@ -163,3 +163,4 @@ def post_tweets():
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
