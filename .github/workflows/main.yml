@@ -75,3 +75,29 @@ jobs:
         run: |
           cd SPXVisuals
           python post_to_x.py
+          
+      # 7️⃣ Push to GitHub Pages
+      - name: Push to GitHub Pages
+        if: ${{ steps.check_images.outputs.has_images == 'true' }}
+        uses: actions/checkout@v3
+        with:
+          repository: SPXVisuals/SPXVisuals.github.io
+          token: ${{ secrets.GH_PAGES_TOKEN }}
+          path: pages-repo
+
+      - name: Copy charts to Pages repo
+        if: ${{ steps.check_images.outputs.has_images == 'true' }}
+        run: |
+          mkdir -p pages-repo/output
+          cp -r SPXVisuals/output/* pages-repo/output/
+
+      - name: Commit & push charts
+        if: ${{ steps.check_images.outputs.has_images == 'true' }}
+        run: |
+          cd pages-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Update SPXVisuals charts [skip ci]" || echo "No changes to commit"
+          git push
+
