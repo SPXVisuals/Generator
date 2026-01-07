@@ -198,7 +198,7 @@ def compute_period_performance(sp500, timeframe):
 
 
 # ---------------- NORMALIZED PRICE CHARTS ----------------
-def plot_normalized_prices(sp500, ranks, tickers, timeframe):
+def plot_normalized_prices(sp500, ranks, tickers, timeframe, date_str=None):  # UPDATED
     outputs = []
     spx = yf.Ticker(SPX_TICKER).history(period=HISTORY_PERIOD)["Close"]
     spx_close = get_days_to_plot(timeframe, spx)
@@ -223,7 +223,7 @@ def plot_normalized_prices(sp500, ranks, tickers, timeframe):
             fontsize=14
         )
         plt.legend(fontsize=9)
-        path = f"output/normalized/{timeframe}_{i // 10}.png"
+        path = f"output/normalized/{date_str}_{timeframe}_{i // 10}.png"  # UPDATED
         plt.savefig(path)
         plt.close()
         outputs.append(path)
@@ -277,7 +277,7 @@ def donut_chart_with_rest(sp500, tickers, title, sp500_total_mc, path):
 
 
 # ---------------- P/E BAR CHARTS ----------------
-def plot_pe_bar_charts_fixed(sp500, tickers):
+def plot_pe_bar_charts_fixed(sp500, tickers, date_str=None):  # UPDATED
     paths = []
 
     def plot_metric(key, title, ylabel, fname):
@@ -306,7 +306,7 @@ def plot_pe_bar_charts_fixed(sp500, tickers):
         plt.title(title, fontsize=14)
         plt.xticks(rotation=90)
         plt.tight_layout()
-        path = f"output/pe/{fname}.png"
+        path = f"output/pe/{date_str}_{fname}.png"  # UPDATED
         plt.savefig(path)
         plt.close()
         paths.append(path)
@@ -318,7 +318,7 @@ def plot_pe_bar_charts_fixed(sp500, tickers):
 
 
 # ---------------- SMA / EMA CHARTS ----------------
-def plot_ma_simple(sp500, ranks, ticker, ma_type, timeframe):
+def plot_ma_simple(sp500, ranks, ticker, ma_type, timeframe, date_str=None):  # UPDATED
     d = sp500[ticker]
     close = get_days_to_plot(timeframe, d["close"])
     plt.figure(figsize=(14, 7), dpi=150)
@@ -333,14 +333,14 @@ def plot_ma_simple(sp500, ranks, ticker, ma_type, timeframe):
         plt.plot(series, label=f"{ma_type}{p} (${series.iloc[-1]:.2f})")
     plt.title(f"{timeframe} - {ticker} {ma_type} – #{ranks[ticker]} Largest By Market Capitalization", fontsize=14)
     plt.legend(fontsize=9)
-    path = f"output/ma/{ticker}_{ma_type}_{timeframe}.png"
+    path = f"output/ma/{date_str}_{ticker}_{ma_type}_{timeframe}.png"  # UPDATED
     plt.savefig(path)
     plt.close()
     log(f"Created SMA & EMA charts for {ticker}")
     return path
 
 
-def plot_gainers_losers(df, timeframe, spx_perf):
+def plot_gainers_losers(df, timeframe, spx_perf, save_path=None):  # UPDATED
     df = df.sort_values("Percent Change", ascending=False)
     gainers = df.head(25)
     losers = df.tail(25).sort_values("Percent Change")
@@ -423,7 +423,7 @@ def plot_gainers_losers(df, timeframe, spx_perf):
 
     plt.suptitle(f"{timeframe} - S&P 500 Performance Leaders & Laggards", fontsize=17, weight="bold", y=0.97)
 
-    path = f"output/leaders_laggards/gainers_losers_{timeframe}.png"
+    path = save_path or f"output/leaders_laggards/gainers_losers_{timeframe}.png"
     plt.savefig(path, pad_inches=0.15)
     plt.close()
     log(f"Created gainers/losers chart: {path}")
@@ -433,6 +433,7 @@ def plot_gainers_losers(df, timeframe, spx_perf):
 # ---------------- RUN TODAY ----------------
 def run_today():
     day = datetime.now().strftime("%A")
+    date_str = datetime.now().strftime("%Y-%m-%d")  # NEW
     log(f"Starting run_today() for {day}")
     cfg = SCHEDULE.get(day)
     if not cfg:
@@ -455,7 +456,7 @@ def run_today():
         # MarketCap charts
         marketcap_images = []
         for tickers, label in ranges:
-            path = f"output/marketcap/marketcap_{label}.png"
+            path = f"output/marketcap/{date_str}_marketcap_{label}.png"  # UPDATED
             donut_chart_with_rest(
                 sp500,
                 tickers,
@@ -471,7 +472,7 @@ def run_today():
             })
 
         # P/E charts
-        pe_paths = plot_pe_bar_charts_fixed(sp500, top50)
+        pe_paths = plot_pe_bar_charts_fixed(sp500, top50, date_str=date_str)  # UPDATED
         if pe_paths:
             posts.append({"type": "pe", "images": [pe_paths[0]], "subtype": "trailing"})
             posts.append({"type": "pe", "images": [pe_paths[1]], "subtype": "forward"})
@@ -497,8 +498,8 @@ def run_today():
                 perf_df.at[0, "Change In Price"] = change
                 perf_df.at[0, "Percent Change"] = pct_change
 
-        gl_path = plot_gainers_losers(perf_df, timeframe, spx_perf)
-
+        gl_path = f"output/leaders_laggards/{date_str}_gainers_losers_{timeframe}.png"  # UPDATED
+        plot_gainers_losers(perf_df, timeframe, spx_perf, save_path=gl_path)  # UPDATED
         posts.append({
             "type": "gainers_losers",
             "images": [gl_path],
@@ -506,7 +507,7 @@ def run_today():
         })
 
         # Normalized price charts
-        norm_paths = plot_normalized_prices(sp500, ranks, top40, timeframe)
+        norm_paths = plot_normalized_prices(sp500, ranks, top40, timeframe, date_str=date_str)  # UPDATED
         posts.append({
             "type": "normalized",
             "images": norm_paths,
@@ -519,18 +520,14 @@ def run_today():
                 "type": "ma",
                 "ticker": t,
                 "images": [
-                    plot_ma_simple(sp500, ranks, t, "SMA", SMA_EMA_TIMEFRAME),
-                    plot_ma_simple(sp500, ranks, t, "EMA", SMA_EMA_TIMEFRAME),
+                    plot_ma_simple(sp500, ranks, t, "SMA", SMA_EMA_TIMEFRAME, date_str=date_str),  # UPDATED
+                    plot_ma_simple(sp500, ranks, t, "EMA", SMA_EMA_TIMEFRAME, date_str=date_str),  # UPDATED
                 ]
             })
 
     # Save metadata JSON
-    meta_path = f"output/metadata/posts_{datetime.now():%Y-%m-%d}.json"
+    meta_path = f"output/metadata/posts_{date_str}.json"  # UPDATED
     with open(meta_path, "w") as f:
         json.dump(posts, f, indent=2)
     log(f"Saved metadata JSON: {meta_path}")
     log("run_today() completed")
-
-if __name__ == "__main__":
-    run_today()
-
