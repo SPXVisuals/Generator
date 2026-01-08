@@ -130,7 +130,9 @@ def post_tweets():
 
         try:
             status = client.create_tweet(text=tweet["text"], media_ids=media_ids)  # v2 post
+            tweet_id = status.data["id"]
             log(f"Tweet posted successfully: {status.data['id']}")
+            update_metadata_with_tweet(tweet, tweet_id)
             time.sleep(random.randint(25 * 60, 45 * 60))
         except Exception as e:
             log(f"Failed to post tweet: {tweet['text']}\nError: {e}")
@@ -159,9 +161,38 @@ def post_tweets():
         else:
             log("No HTTP response available in exception, cannot show headers or rate-limit info.")
 
+def update_metadata_with_tweet(tweet, tweet_id):
+    date = datetime.now().strftime("%Y-%m-%d")
+    meta_path = f"output/metadata/posts_{date}.json"
+
+    if not os.path.exists(meta_path):
+        log(f"Metadata file not found: {meta_path}")
+        return
+
+    with open(meta_path, "r") as f:
+        posts = json.load(f)
+
+    updated = False
+    for post in posts:
+        post_images = post.get("images", [])
+        if not post_images:
+            continue
+
+        # Match by first image filename
+        if os.path.basename(post_images[0]) == os.path.basename(tweet["images"][0]):
+            post["tweet_id"] = tweet_id
+            post["tweet_text"] = tweet["text"]
+            post["tweet_url"] = f"https://x.com/YOUR_HANDLE/status/{tweet_id}"
+            updated = True
+            break
+
+    if updated:
+        with open(meta_path, "w") as f:
+            json.dump(posts, f, indent=2)
+        log(f"Metadata updated with tweet ID {tweet_id}")
+    else:
+        log("WARNING: No matching metadata post found for tweet")
 
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
-
-
