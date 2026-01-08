@@ -37,7 +37,7 @@ def build_tweet_text(post):
             timeframe_text = timeframe
     elif post["type"] == "normalized" and post["images"]:
         fname = os.path.basename(post["images"][0])
-        timeframe_text = fname.split("_")[0]
+        timeframe_text = fname.split("_")[1]
 
     # Build text per type
     if post["type"] == "ma":
@@ -163,4 +163,5 @@ def post_tweets():
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
