@@ -531,3 +531,7 @@ def run_today():
         json.dump(posts, f, indent=2)
     log(f"Saved metadata JSON: {meta_path}")
     log("run_today() completed")
+
+if __name__ == "__main__":
+    run_today()
+
