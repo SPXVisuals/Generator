@@ -1,10 +1,9 @@
 name: SPXVisuals Daily Run
 
-# Run every day at 11:00 AM EST (16:00 UTC)
 on:
   schedule:
     - cron: '0 16 * * *'
-  workflow_dispatch:  # manual trigger option
+  workflow_dispatch:
 
 jobs:
   build-and-run:
@@ -32,6 +31,12 @@ jobs:
         run: |
           cd SPXVisuals
           python generate_data.py
+
+      # ✅ Merge all daily posts into posts.json (site only)
+      - name: Merge all daily posts into posts.json
+        run: |
+          cd SPXVisuals
+          python merge_posts.py
 
       # 🔍 Debug: show working directory and output files
       - name: Debug output paths
@@ -61,7 +66,6 @@ jobs:
           else
             echo "No images found. Skipping posting to X."
             echo "has_images=false" >> $GITHUB_OUTPUT
-          fi
 
       # 6️⃣ Post to X (v2) only if images exist
       - name: Post to X
@@ -75,7 +79,7 @@ jobs:
         run: |
           cd SPXVisuals
           python post_to_x.py
-          
+
       # 7️⃣ Push to GitHub Pages
       - name: Push to GitHub Pages
         if: ${{ steps.check_images.outputs.has_images == 'true' }}
@@ -85,7 +89,7 @@ jobs:
           token: ${{ secrets.GH_PAGES_TOKEN }}
           path: pages-repo
 
-      - name: Copy charts to Pages repo
+      - name: Copy charts & metadata to Pages repo
         if: ${{ steps.check_images.outputs.has_images == 'true' }}
         run: |
           mkdir -p pages-repo/output
@@ -100,4 +104,3 @@ jobs:
           git add .
           git commit -m "Update SPXVisuals charts [skip ci]" || echo "No changes to commit"
           git push
-
