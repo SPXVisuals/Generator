@@ -57,15 +57,18 @@ jobs:
       - name: Check for images
         id: check_images
         run: |
+          set -euo pipefail
           cd SPXVisuals
           shopt -s nullglob
           files=(output/normalized/*.png output/ma/*.png output/marketcap/*.png output/pe/*.png)
-          if [ ${#files[@]} -gt 0 ]; then
+
+          if (( ${#files[@]} > 0 )); then
             echo "Images found. Proceeding to post to X."
-            echo "has_images=true" >> $GITHUB_OUTPUT
+            echo "has_images=true" >> "$GITHUB_OUTPUT"
           else
             echo "No images found. Skipping posting to X."
-            echo "has_images=false" >> $GITHUB_OUTPUT
+            echo "has_images=false" >> "$GITHUB_OUTPUT"
+          fi
 
       # 6️⃣ Post to X (v2) only if images exist
       - name: Post to X
