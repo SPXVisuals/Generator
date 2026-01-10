@@ -418,8 +418,8 @@ def plot_gainers_losers(df, timeframe, spx_perf, save_path=None):  # UPDATED
 
         ax.set_title(title, fontsize=15, weight="bold", color=title_color, pad=6)
 
-    draw_table(ax_g, gainers, "GAINERS", "black")
-    draw_table(ax_l, losers, "LOSERS", "black")
+    draw_table(ax_g, gainers, "LEADERS", "black")
+    draw_table(ax_l, losers, "LAGGARDS", "black")
 
     plt.suptitle(f"{timeframe} - S&P 500 Performance Leaders & Laggards", fontsize=17, weight="bold", y=0.97)
 
@@ -534,4 +534,5 @@ def run_today():
 
 if __name__ == "__main__":
     run_today()
+
 
