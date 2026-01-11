@@ -82,28 +82,35 @@ jobs:
         run: |
           cd SPXVisuals
           python post_to_x.py
-
+      
       # 7️⃣ Push to GitHub Pages
       - name: Push to GitHub Pages
-        if: ${{ steps.check_images.outputs.has_images == 'true' }}
         uses: actions/checkout@v3
         with:
           repository: SPXVisuals/SPXVisuals.github.io
           token: ${{ secrets.GH_PAGES_TOKEN }}
           path: pages-repo
 
-      - name: Copy charts & metadata to Pages repo
+      # Always copy metadata JSON files
+      - name: Copy metadata to Pages repo
+        run: |
+          mkdir -p pages-repo/output/metadata
+          cp -r SPXVisuals/output/metadata/* pages-repo/output/metadata/
+
+    # Copy chart images only if they exist
+      - name: Copy chart images
         if: ${{ steps.check_images.outputs.has_images == 'true' }}
         run: |
-          mkdir -p pages-repo/output
-          cp -r SPXVisuals/output/* pages-repo/output/
+          cp -r SPXVisuals/output/normalized pages-repo/output/
+          cp -r SPXVisuals/output/ma pages-repo/output/
+          cp -r SPXVisuals/output/marketcap pages-repo/output/
+          cp -r SPXVisuals/output/pe pages-repo/output/
 
-      - name: Commit & push charts
-        if: ${{ steps.check_images.outputs.has_images == 'true' }}
+      - name: Commit & push changes
         run: |
           cd pages-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Update SPXVisuals charts [skip ci]" || echo "No changes to commit"
+          git commit -m "Update SPXVisuals charts & metadata [skip ci]" || echo "No changes to commit"
           git push
