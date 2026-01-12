@@ -3,7 +3,7 @@ import glob
 import os
 from logger import log
 
-METADATA_DIR = "/output/metadata"
+METADATA_DIR = "output/metadata"
 OUTPUT_FILE = os.path.join(METADATA_DIR, "posts.json")
 
 os.makedirs(METADATA_DIR, exist_ok=True)
