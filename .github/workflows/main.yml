@@ -36,7 +36,7 @@ jobs:
       - name: Merge all daily posts into posts.json
         run: |
           cd SPXVisuals
-          python merge_posts.py
+          python build_index.py
 
       # 🔍 Debug: show working directory and output files
       - name: Debug output paths
