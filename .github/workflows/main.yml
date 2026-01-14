@@ -32,12 +32,12 @@ jobs:
           cd SPXVisuals
           python generate_data.py
 
-      # ✅ Merge all daily posts into posts.json (site only)
-      - name: Merge all daily posts into posts.json
+     # Build index.json in Pages repo (ALL posts)
+      - name: Build index.json
         run: |
-          cd SPXVisuals
-          python build_index.py
-
+          cd pages-repo
+          python ../SPXVisuals/build_index.py
+          
       # 🔍 Debug: show working directory and output files
       - name: Debug output paths
         run: |
