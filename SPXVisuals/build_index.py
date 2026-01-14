@@ -1,7 +1,7 @@
-# build_index.py
 import os, json
 
-METADATA_DIR = "output/metadata"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+METADATA_DIR = os.path.join(BASE_DIR, "output", "metadata")
 
 files = sorted(
     f for f in os.listdir(METADATA_DIR)
