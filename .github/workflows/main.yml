@@ -32,7 +32,7 @@ jobs:
           cd SPXVisuals
           python generate_data.py
 
-     # Build index.json in Pages repo (ALL posts)
+      # Build index.json in Pages repo (ALL posts)
       - name: Build index.json
         run: |
           cd pages-repo
