@@ -105,6 +105,7 @@ jobs:
           cp -r SPXVisuals/output/ma pages-repo/output/
           cp -r SPXVisuals/output/marketcap pages-repo/output/
           cp -r SPXVisuals/output/pe pages-repo/output/
+          cp -r SPXVisuals/output/leaders_laggards pages-repo/output/
 
       - name: Commit & push changes
         run: |
