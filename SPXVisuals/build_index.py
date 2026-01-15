@@ -1,5 +1,6 @@
 import os
 import json
+from logger import log
 
 # ---------------- Paths ----------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -11,6 +12,7 @@ if not os.path.isdir(METADATA_DIR):
     raise RuntimeError(f"Metadata directory not found: {METADATA_DIR}")
 
 # ---------------- Gather all JSON files ----------------
+# Include all posts_*.json files (historical + new)
 files = sorted(
     f for f in os.listdir(METADATA_DIR)
     if f.startswith("posts_") and f.endswith(".json")
@@ -28,7 +30,7 @@ for f in files:
         if isinstance(data, list):
             all_posts.extend(data)
 
-# Sort posts newest first by "date" key
+# Sort posts newest first by "date"
 all_posts.sort(key=lambda p: p.get("date", ""), reverse=True)
 
 # ---------------- Write index.json ----------------
@@ -40,6 +42,6 @@ with open(ALL_POSTS_FILE, "w", encoding="utf-8") as f:
     json.dump(all_posts, f, indent=2)
 
 # ---------------- Done ----------------
-print(f"✅ index.json written to {INDEX_FILE}")
-print(f"✅ all_posts.json written to {ALL_POSTS_FILE}")
-print(f"📄 {len(files)} JSON files indexed, {len(all_posts)} total posts")
+log(f"✅ index.json written to {INDEX_FILE}")
+log(f"✅ all_posts.json written to {ALL_POSTS_FILE}")
+log(f"📄 {len(files)} JSON files indexed, {len(all_posts)} total posts")
