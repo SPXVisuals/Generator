@@ -35,17 +35,10 @@ jobs:
       # 🔍 Debug: show working directory and output files
       - name: Debug output paths
         run: |
-          echo "PWD:"
-          pwd
-          echo ""
-          echo "Repo root contents:"
-          ls -la
-          echo ""
-          echo "SPXVisuals contents:"
-          ls -la SPXVisuals || true
-          echo ""
-          echo "Output tree:"
-          find SPXVisuals/output -type f || true
+          echo "PWD:"; pwd
+          echo "Repo root contents:"; ls -la
+          echo "SPXVisuals contents:"; ls -la SPXVisuals || true
+          echo "Output tree:"; find SPXVisuals/output -type f || true
 
       # 5️⃣ Check if images exist
       - name: Check for images
@@ -62,7 +55,6 @@ jobs:
           else
             echo "No images found. Skipping posting to X."
             echo "has_images=false" >> "$GITHUB_OUTPUT"
-          fi
 
       # 6️⃣ Post to X (v2) only if images exist
       - name: Post to X
@@ -77,27 +69,27 @@ jobs:
           cd SPXVisuals
           python post_to_x.py
       
-      # 7️⃣ Push to GitHub Pages
-      - name: Push to GitHub Pages
+      # 7️⃣ Checkout GitHub Pages repo
+      - name: Checkout Pages repo
         uses: actions/checkout@v3
         with:
           repository: SPXVisuals/SPXVisuals.github.io
           token: ${{ secrets.GH_PAGES_TOKEN }}
           path: pages-repo
       
-      # Always copy metadata JSON files FIRST
-      - name: Copy metadata to Pages repo
+      # 8️⃣ Copy all metadata JSONs to Pages repo BEFORE building index
+      - name: Copy all metadata JSON files
         run: |
           mkdir -p pages-repo/output/metadata
-          cp -r SPXVisuals/output/metadata/* pages-repo/output/metadata/
+          cp -r SPXVisuals/output/metadata/posts_*.json pages-repo/output/metadata/
 
-      # Build index.json AFTER all metadata is present
+      # 9️⃣ Build index.json in Pages repo
       - name: Build index.json
         run: |
           cd pages-repo
           python ../SPXVisuals/build_index.py
 
-    # Copy chart images only if they exist
+      # 🔟 Copy chart images only if they exist
       - name: Copy chart images
         if: ${{ steps.check_images.outputs.has_images == 'true' }}
         run: |
@@ -107,6 +99,7 @@ jobs:
           cp -r SPXVisuals/output/pe pages-repo/output/
           cp -r SPXVisuals/output/leaders_laggards pages-repo/output/
 
+      # 1️⃣1️⃣ Commit & push
       - name: Commit & push changes
         run: |
           cd pages-repo
