@@ -86,7 +86,7 @@ jobs:
           path: pages-repo
       
       # Always copy metadata JSON files FIRST
-      - name: Checkout Pages repo
+      - name: Copy metadata to Pages repo
         run: |
           mkdir -p pages-repo/output/metadata
           cp -r SPXVisuals/output/metadata/* pages-repo/output/metadata/
