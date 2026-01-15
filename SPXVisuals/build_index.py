@@ -8,6 +8,7 @@ METADATA_DIR = os.path.join(BASE_DIR, "output", "metadata")
 INDEX_FILE = os.path.join(METADATA_DIR, "index.json")
 ALL_POSTS_FILE = os.path.join(METADATA_DIR, "all_posts.json")
 
+# ---------------- Ensure metadata folder exists ----------------
 if not os.path.isdir(METADATA_DIR):
     raise RuntimeError(f"Metadata directory not found: {METADATA_DIR}")
 
@@ -33,15 +34,14 @@ for f in files:
 # Sort posts newest first by "date"
 all_posts.sort(key=lambda p: p.get("date", ""), reverse=True)
 
-# ---------------- Write index.json ----------------
+# ---------------- Write index.json (list of all JSON files) ----------------
 with open(INDEX_FILE, "w", encoding="utf-8") as f:
     json.dump(files, f, indent=2)
 
-# ---------------- Write all_posts.json ----------------
+# ---------------- Write all_posts.json (merged data) ----------------
 with open(ALL_POSTS_FILE, "w", encoding="utf-8") as f:
     json.dump(all_posts, f, indent=2)
 
 # ---------------- Done ----------------
 log(f"✅ index.json written to {INDEX_FILE}")
-log(f"✅ all_posts.json written to {ALL_POSTS_FILE}")
-log(f"📄 {len(files)} JSON files indexed, {len(all_posts)} total posts")
+log(f"✅ al
