@@ -55,6 +55,7 @@ jobs:
           else
             echo "No images found. Skipping posting to X."
             echo "has_images=false" >> "$GITHUB_OUTPUT"
+          fi
 
       # 6️⃣ Post to X (v2) only if images exist
       - name: Post to X
