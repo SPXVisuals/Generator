@@ -83,11 +83,7 @@ jobs:
           mkdir -p pages-repo/output/metadata
           cp -r SPXVisuals/output/metadata/posts_*.json pages-repo/output/metadata/
 
-      # 9️⃣ Build index.json in Pages repo
-      - name: Build index.json
-        run: |
-          cd pages-repo
-          python ../SPXVisuals/build_index.py
+      # 9️⃣ Step deleted
 
       # 🔟 Copy chart images only if they exist
       - name: Copy chart images
