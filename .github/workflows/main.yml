@@ -107,3 +107,12 @@ jobs:
           git add .
           git commit -m "Update SPXVisuals charts & metadata [skip ci]" || echo "No changes to commit"
           git push
+      
+      # 🔔 Trigger index rebuild workflow
+      - name: Trigger index rebuild
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GH_PAGES_TOKEN }}" \
+            https://api.github.com/repos/SPXVisuals/SPXVisuals.github.io/dispatches \
+            -d '{"event_type":"rebuild_index"}'
