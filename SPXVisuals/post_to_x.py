@@ -20,7 +20,7 @@ def build_tweet_text(post):
 
     type_tag_map = {
         "ma": "#SMA #EMA",
-        "normalized": "#NormalizedPrices #PriceChart",
+        "normalized": "#PriceChart",
         "marketcap": "#MarketCapitalization #MarketCap",
         "pe": "#PE",
         "gainers_losers": "#MarketLeaders #MarketLaggards"
@@ -196,4 +196,5 @@ def update_metadata_with_tweet(tweet, tweet_id):
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
