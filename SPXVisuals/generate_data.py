@@ -103,26 +103,57 @@ def fetch_market_data(sp500):
         try:
             tk = yf.Ticker(t)
             log(f"Fetching data for {t}")
+
             info = tk.info or {}
-            price = info.get("regularMarketPrice")
-            shares = info.get("sharesOutstanding")
+            fi = getattr(tk, "fast_info", {}) or {}
+
+            # --- Price fallback ---
+            price = (
+                info.get("regularMarketPrice")
+                or fi.get("last_price")
+                or fi.get("lastPrice")
+            )
+
+            # --- Shares fallback ---
+            shares = (
+                info.get("sharesOutstanding")
+                or fi.get("shares_outstanding")
+                or fi.get("sharesOutstanding")
+            )
+
             if not price or not shares:
-                continue
-            sp500[t]["price"] = price
-            sp500[t]["market_cap"] = price * shares
+                log(f"[WARN] Missing price/shares for {t}")
+                sp500[t]["price"] = price
+                sp500[t]["market_cap"] = None
+            else:
+                sp500[t]["price"] = float(price)
+                sp500[t]["market_cap"] = float(price) * float(shares)
+
+            # --- Valuation ---
             sp500[t]["trailingPE"] = info.get("trailingPE")
             sp500[t]["forwardPE"] = info.get("forwardPE")
-            close = tk.history(period=HISTORY_PERIOD)["Close"]
+
+            # --- History safe fetch ---
+            hist = tk.history(period=HISTORY_PERIOD)
+
+            if hist is None or hist.empty:
+                log(f"[WARN] Empty history for {t}")
+                continue
+
+            close = hist["Close"]
             sp500[t]["close"] = close
+
             for p in SMA_PERIODS:
                 sp500[t][f"SMA{p}"] = close.rolling(p).mean()
+
             for p in EMA_PERIODS:
                 sp500[t][f"EMA{p}"] = close.ewm(span=p, adjust=False).mean()
+
             log(f"Successfully fetched data for {t}")
+
         except Exception as e:
             log(f"Failed fetching {t}: {e}")
             continue
-
 
 # ---------------- RANKING ----------------
 def rank_by_market_cap(sp500):
@@ -447,7 +478,7 @@ def run_today():
     posts = []
 
     if cfg.get("fundamentals"):
-        total_mc = sum(sp500[t]["market_cap"] for t in sp500)
+        total_mc = sum(v.get("market_cap") or 0 for v in sp500.values())
         ranges = [
             (top50[:10], "1_10"),
             (top50[10:25], "11_25"),
@@ -534,5 +565,6 @@ def run_today():
 
 if __name__ == "__main__":
     run_today()
+
 
 
