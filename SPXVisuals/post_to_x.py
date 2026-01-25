@@ -8,7 +8,6 @@ import random
 
 # ---------------- Build tweet text ----------------
 def build_tweet_text(post):
-    website_text = "\nSee more at https://spxvisuals.github.io"
     hashtags = ["#SPXVisuals"]  # Always first
 
     if post.get("ticker"):
@@ -42,18 +41,18 @@ def build_tweet_text(post):
 
     # Build text per type
     if post["type"] == "ma":
-        return f"{timeframe_text} - {post['ticker']} SMA & EMA Charts 📈 {hashtags_text}{website_text}"
+        return f"{timeframe_text} - {post['ticker']} SMA & EMA Charts 📈 {hashtags_text}"
     elif post["type"] == "normalized":
-        return f"{timeframe_text} - Normalized Price Charts For The 40 Largest S&P 500 Index Components 📈 {hashtags_text}{website_text}"
+        return f"{timeframe_text} - Normalized Price Charts For The 40 Largest S&P 500 Index Components 📈 {hashtags_text}"
     elif post["type"] == "marketcap":
-        return f"Market Capitalization Distribution Charts For The 50 Largest S&P 500 Index Components 🍩 📊 {hashtags_text}{website_text}"
+        return f"Market Capitalization Distribution Charts For The 50 Largest S&P 500 Index Components 🍩 📊 {hashtags_text}"
     elif post["type"] == "pe":
         pe_type = "Trailing" if "trailing" in post.get("images", [""])[0] else "Forward"
-        return f"{pe_type} P/E Chart For The 50 Largest S&P 500 Index Components 📊 {hashtags_text}{website_text}"
+        return f"{pe_type} P/E Chart For The 50 Largest S&P 500 Index Components 📊 {hashtags_text}"
     elif post["type"] == "gainers_losers":
         timeframe = post.get("timeframe", "")
         return (
-            f"{timeframe} - S&P 500 Index Components' Performance Leaders vs Laggards 📋 {hashtags_text}{website_text}"
+            f"{timeframe} - S&P 500 Index Components' Performance Leaders vs Laggards 📋 {hashtags_text}"
         )
     else:
         return hashtags_text
@@ -197,6 +196,7 @@ def update_metadata_with_tweet(tweet, tweet_id):
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
