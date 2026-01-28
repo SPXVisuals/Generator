@@ -12,10 +12,11 @@ def build_tweet_text(post):
 
     if post.get("ticker"):
         hashtags.append(f"#{post['ticker']}")
+        hashtags.append(f"${post['ticket']}")
 
     hashtags.extend([
         "#SPX", "#SP500", "#SAndP500",
-        "#Equities", "#Stocks", "#Market", "#StockMarket", "#Investing"
+        "#Equities", "#Stocks", "#Market", "#StockMarket", "#Investing", "$SPY", "$SPX"
     ])
 
     type_tag_map = {
@@ -196,6 +197,7 @@ def update_metadata_with_tweet(tweet, tweet_id):
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
