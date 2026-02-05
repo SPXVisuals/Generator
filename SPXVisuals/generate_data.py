@@ -240,7 +240,7 @@ def plot_normalized_prices(sp500, ranks, tickers, timeframe, date_str=None):  # 
 
     for i in range(0, len(tickers), 10):
         group = tickers[i:i + 10]
-        plt.figure(figsize=(14, 7), dpi=150)
+        plt.figure(figsize=(14, 7), dpi=200)
         plt.plot(spx_norm, label=f"SPX ({spx_pct:+.2f}%)", linewidth=3, color="black")
         perf = []
         for t in group:
@@ -267,7 +267,7 @@ def plot_normalized_prices(sp500, ranks, tickers, timeframe, date_str=None):  # 
 def donut_chart_with_rest(sp500, tickers, title, sp500_total_mc, path):
     values = [sp500[t]["market_cap"] for t in tickers]
     rest_value = sp500_total_mc - sum(values)
-    fig, ax = plt.subplots(figsize=(10, 10), dpi=150)
+    fig, ax = plt.subplots(figsize=(10, 10), dpi=200)
     wedges, _ = ax.pie(
         values,
         radius=1.0,
@@ -323,7 +323,7 @@ def plot_pe_bar_charts_fixed(sp500, tickers, date_str=None):  # UPDATED
             if pe and pe > 0:
                 rows.append({"Ticker": t, "Value": pe, "Color": "Other"})
         df = pd.DataFrame(rows).sort_values("Value", ascending=False)
-        plt.figure(figsize=(18, 7), dpi=150)
+        plt.figure(figsize=(18, 7), dpi=200)
         ax = sns.barplot(
             data=df,
             x="Ticker",
@@ -376,7 +376,7 @@ def plot_top_volume_bar(sp500, top_n, timeframe, date_str):
     total_vol = df["Volume"].sum()
     df["Percent"] = df["Volume"] / total_vol * 100
 
-    plt.figure(figsize=(18, 7), dpi=150)
+    plt.figure(figsize=(18, 7), dpi=200)
     ax = sns.barplot(
         data=df,
         x="Ticker",
@@ -414,7 +414,7 @@ def plot_top_volume_bar(sp500, top_n, timeframe, date_str):
 def plot_ma_simple(sp500, ranks, ticker, ma_type, timeframe, date_str=None):  # UPDATED
     d = sp500[ticker]
     close = get_days_to_plot(timeframe, d["close"])
-    plt.figure(figsize=(14, 7), dpi=150)
+    plt.figure(figsize=(14, 7), dpi=200)
     plt.plot(
         close,
         label=f"{ticker} (${d['price']:.2f}) ({format_market_cap(d['market_cap'])}) (#{ranks[ticker]} Market Cap)",
@@ -438,7 +438,7 @@ def plot_gainers_losers(df, timeframe, spx_perf, save_path=None):  # UPDATED
     gainers = df.head(25)
     losers = df.tail(25).sort_values("Percent Change")
 
-    fig = plt.figure(figsize=(22, 11), dpi=150)
+    fig = plt.figure(figsize=(22, 11), dpi=200)
     gs = fig.add_gridspec(
         nrows=2,
         ncols=2,
@@ -640,6 +640,7 @@ def run_today():
 
 if __name__ == "__main__":
     run_today()
+
 
 
 
