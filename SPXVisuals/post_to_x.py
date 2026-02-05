@@ -23,6 +23,7 @@ def build_tweet_text(post):
         "ma": "#SMA #EMA",
         "normalized": "#PriceChart",
         "marketcap": "#MarketCapitalization #MarketCap",
+        "volume": "#Volume #TradingVolume",
         "pe": "#PE",
         "gainers_losers": "#MarketLeaders #MarketLaggards"
     }
@@ -39,6 +40,9 @@ def build_tweet_text(post):
     elif post["type"] == "normalized" and post["images"]:
         fname = os.path.basename(post["images"][0])
         timeframe_text = fname.split("_")[1]
+    elif post["type"] == "volume" and post["images"]:
+        fname = os.path.basename(post["images"][0])
+        timeframe_text = fname.split("_")[1]
 
     # Build text per type
     if post["type"] == "ma":
@@ -47,6 +51,8 @@ def build_tweet_text(post):
         return f"{timeframe_text} - Normalized Price Charts For The 40 Largest S&P 500 Index Components 📈 {hashtags_text}"
     elif post["type"] == "marketcap":
         return f"Market Capitalization Distribution Charts For The 50 Largest S&P 500 Index Components 🍩 📊 {hashtags_text}"
+    elif post["type"] == "volume":
+        return f"Volume Distribution Charts For The 50 Largest S&P 500 Index Components 📊 {hashtags_text}"
     elif post["type"] == "pe":
         pe_type = "Trailing" if "trailing" in post.get("images", [""])[0] else "Forward"
         return f"{pe_type} P/E Chart For The 50 Largest S&P 500 Index Components 📊 {hashtags_text}"
