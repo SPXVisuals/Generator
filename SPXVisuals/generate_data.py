@@ -140,20 +140,22 @@ def fetch_market_data(sp500):
                 log(f"[WARN] Empty history for {t}")
                 continue
 
-            close = hist["Close"]
-            sp500[t]["close"] = close
+            # Store Close and Volume
+            sp500[t]["close"] = hist["Close"]
+            sp500[t]["Volume"] = hist["Volume"]  # <-- NEW
 
             for p in SMA_PERIODS:
-                sp500[t][f"SMA{p}"] = close.rolling(p).mean()
+                sp500[t][f"SMA{p}"] = hist["Close"].rolling(p).mean()
 
             for p in EMA_PERIODS:
-                sp500[t][f"EMA{p}"] = close.ewm(span=p, adjust=False).mean()
+                sp500[t][f"EMA{p}"] = hist["Close"].ewm(span=p, adjust=False).mean()
 
             log(f"Successfully fetched data for {t}")
 
         except Exception as e:
             log(f"Failed fetching {t}: {e}")
             continue
+
 
 # ---------------- RANKING ----------------
 def rank_by_market_cap(sp500):
@@ -348,6 +350,66 @@ def plot_pe_bar_charts_fixed(sp500, tickers, date_str=None):  # UPDATED
     return paths
 
 
+# ---------------- VOLUME BAR CHARTS ----------------
+def plot_top_volume_bar(sp500, top_n, timeframe, date_str):
+    volumes = {}
+    for t, d in sp500.items():
+        vol_series = d.get("Volume")
+        if vol_series is None or vol_series.empty:
+            continue
+        period_vol = get_days_to_plot(timeframe, vol_series).sum()
+        volumes[t] = period_vol
+
+    if not volumes:
+        log(f"No volume data available for timeframe {timeframe}")
+        return []
+
+    top_volumes = dict(sorted(volumes.items(), key=lambda x: x[1], reverse=True)[:top_n])
+
+    # Convert to DataFrame and scale volume to millions
+    df = pd.DataFrame({
+        "Ticker": list(top_volumes.keys()),
+        "Volume": [v / 1e6 for v in top_volumes.values()]  # scale to millions
+    }).sort_values("Volume", ascending=False)
+
+    # Add Percent column
+    total_vol = df["Volume"].sum()
+    df["Percent"] = df["Volume"] / total_vol * 100
+
+    plt.figure(figsize=(18, 7), dpi=150)
+    ax = sns.barplot(
+        data=df,
+        x="Ticker",
+        y="Volume",
+        color="skyblue",
+        dodge=False
+    )
+
+    # Annotate each bar (normal weight, fontsize=9, rotated 90°)
+    for i, row in df.iterrows():
+        label = f"{row['Volume']:.1f}M ({row['Percent']:.2f}%)"
+        ax.text(
+            i,
+            row['Volume'] * 1.01,  # slightly above the bar
+            label,
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            rotation=90
+        )
+
+    plt.ylabel("Volume (Millions)")
+    plt.xlabel("Ticker")
+    plt.title(f"{timeframe} - Volume Distribution - #1 - #50 Largest By Volume", fontsize=14)
+    plt.xticks(rotation=90)
+    plt.tight_layout()
+
+    path = f"output/volume/{date_str}_top_volume_{timeframe}.png"
+    plt.savefig(path)
+    plt.close()
+    log(f"Created top volume bar chart (y-axis in millions): {path}")
+    return [path]
+
 # ---------------- SMA / EMA CHARTS ----------------
 def plot_ma_simple(sp500, ranks, ticker, ma_type, timeframe, date_str=None):  # UPDATED
     d = sp500[ticker]
@@ -487,11 +549,11 @@ def run_today():
         # MarketCap charts
         marketcap_images = []
         for tickers, label in ranges:
-            path = f"output/marketcap/{date_str}_marketcap_{label}.png"  # UPDATED
+            path = f"output/marketcap/{date_str}_marketcap_{label}.png"
             donut_chart_with_rest(
                 sp500,
                 tickers,
-                f"Market Capitalization Distribution – #{label.replace('_',' – #')} Largest By Market Cap",
+                f"Market Capitalization Distribution – #{label.replace('_', ' – #')} Largest By Market Capitalization",
                 total_mc,
                 path
             )
@@ -500,13 +562,26 @@ def run_today():
             "type": "marketcap",
             "images": marketcap_images,
             "label": "1_50"
-            })
+        })
 
         # P/E charts
-        pe_paths = plot_pe_bar_charts_fixed(sp500, top50, date_str=date_str)  # UPDATED
+        pe_paths = plot_pe_bar_charts_fixed(sp500, top50, date_str=date_str)
         if pe_paths:
             posts.append({"type": "pe", "images": [pe_paths[0]], "subtype": "trailing"})
             posts.append({"type": "pe", "images": [pe_paths[1]], "subtype": "forward"})
+
+        # ---------------- TOP VOLUME CHARTS ----------------
+        volume_timeframes = ["1w", "1mo", "YTD", "1y"]
+        volume_images = []
+
+        for tf in volume_timeframes:
+            img_paths = plot_top_volume_bar(sp500, top_n=50, timeframe=tf, date_str=date_str)
+            volume_images.extend(img_paths)
+
+        posts.append({
+            "type": "volume",
+            "images": volume_images
+        })
 
     else:
         timeframe = cfg["timeframe"]
