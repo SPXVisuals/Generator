@@ -28,6 +28,7 @@ def build_tweet_text(post):
         "gainers_losers": "#MarketLeaders #MarketLaggards"
     }
     hashtags.append(type_tag_map.get(post["type"], ""))
+    hashtags.append("🌐 spxvisuals.github.io")
     hashtags_text = " ".join(hashtags)
 
     timeframe_text = ""
@@ -203,6 +204,7 @@ def update_metadata_with_tweet(tweet, tweet_id):
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
