@@ -5,6 +5,10 @@ from logger import log
 import tweepy
 import time
 import random
+import sys
+
+# Determine mode: AM or PM
+mode = sys.argv[1].upper() if len(sys.argv) > 1 else "PM"
 
 # ---------------- Build tweet text ----------------
 def build_tweet_text(post):
@@ -66,19 +70,19 @@ def build_tweet_text(post):
         return hashtags_text
 
 # ---------------- Load posts JSON ----------------
-def load_posts_json(date=None):
+def load_posts_json(date=None, mode=mode):
     if date is None:
         date = datetime.now().strftime("%Y-%m-%d")
-    path = f"output/metadata/posts_{date}.json"
+    path = f"output/metadata/posts_{date}_{mode.lower()}.json"
     if not os.path.exists(path):
-        log(f"No JSON file found for {date} at {path}")
+        log(f"No JSON file found for {date} {mode} at {path}")
         return []
     with open(path, "r") as f:
         return json.load(f)
 
 # ---------------- Prepare tweets ----------------
 def prepare_posts_for_tweeting(date=None):
-    posts = load_posts_json(date)
+    posts = load_posts_json(date, mode=mode)
     tweets = []
     for post in posts:
         text = build_tweet_text(post)
@@ -171,7 +175,7 @@ def post_tweets():
 
 def update_metadata_with_tweet(tweet, tweet_id):
     date = datetime.now().strftime("%Y-%m-%d")
-    meta_path = f"output/metadata/posts_{date}.json"
+    meta_path = f"output/metadata/posts_{date}_{mode.lower()}.json"
 
     if not os.path.exists(meta_path):
         log(f"Metadata file not found: {meta_path}")
