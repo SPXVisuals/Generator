@@ -3,14 +3,17 @@ import json
 import pandas as pd
 import yfinance as yf
 import matplotlib
-matplotlib.use("Agg")  # headless plotting
 import matplotlib.pyplot as plt
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 import seaborn as sns
 from logger import log
 import random
+import sys
+import warnings
 
+matplotlib.use("Agg")  # headless plotting
+warnings.filterwarnings("ignore", message=".*not compatible with tight_layout.*")
 plt.rcParams["figure.autolayout"] = True
 sns.set_style("whitegrid")
 
@@ -184,6 +187,57 @@ def compute_spx_performance(timeframe):
         "spx_change": spx_change,
         "spx_pct": spx_pct
     }
+
+
+# ---------------- DAILY PERFORMANCE (UPDATED FOR INTRADAY) ----------------
+def compute_daily_performance(sp500):
+    rows = []
+
+    # Fetch SPX intraday price
+    spx_ticker = yf.Ticker(SPX_TICKER)
+    spx_hist = spx_ticker.history(period="2d")  # last 2 trading days
+    if spx_hist.empty:
+        log("[WARN] SPX history empty for daily performance")
+        return pd.DataFrame(), {}
+
+    spx_close_yesterday = spx_hist["Close"].iloc[-2]
+
+    # Use most recent price for today (intraday)
+    spx_today_price = spx_ticker.fast_info.last_price or spx_hist["Close"].iloc[-1]
+
+    spx_change = spx_today_price - spx_close_yesterday
+    spx_pct = (spx_today_price / spx_close_yesterday - 1) * 100
+    spx_perf = {
+        "spx_then": spx_close_yesterday,
+        "spx_now": spx_today_price,
+        "spx_change": spx_change,
+        "spx_pct": spx_pct
+    }
+
+    for t, d in sp500.items():
+        close_series = d.get("close")
+        if close_series is None or len(close_series) < 2:
+            continue
+
+        price_yesterday = close_series.iloc[-2]
+        # --- UPDATED: Use intraday price if available ---
+        price_today = d.get("price") or close_series.iloc[-1]
+
+        change = price_today - price_yesterday
+        pct_change = (price_today / price_yesterday - 1) * 100
+
+        rows.append({
+            "Ticker": t,
+            "Beginning Price": price_yesterday,
+            "Current Price": price_today,
+            "Change In Price": change,
+            "Percent Change": pct_change,
+            "SPX Change": spx_change,
+            "SPX Percent Change": spx_pct
+        })
+
+    df = pd.DataFrame(rows)
+    return df, spx_perf
 
 
 # Period Performance
@@ -433,7 +487,7 @@ def plot_ma_simple(sp500, ranks, ticker, ma_type, timeframe, date_str=None):  # 
     return path
 
 
-def plot_gainers_losers(df, timeframe, spx_perf, save_path=None):  # UPDATED
+def plot_gainers_losers(df, timeframe, spx_perf, save_path=None):
     df = df.sort_values("Percent Change", ascending=False)
     gainers = df.head(25)
     losers = df.tail(25).sort_values("Percent Change")
@@ -524,7 +578,7 @@ def plot_gainers_losers(df, timeframe, spx_perf, save_path=None):  # UPDATED
 
 
 # ---------------- RUN TODAY ----------------
-def run_today():
+def run_today(mode):
     day = datetime.now().strftime("%A")
     date_str = datetime.now().strftime("%Y-%m-%d")  # NEW
     log(f"Starting run_today() for {day}")
@@ -539,50 +593,61 @@ def run_today():
     top40 = ranked[:40]
     posts = []
 
-    if cfg.get("fundamentals"):
-        total_mc = sum(v.get("market_cap") or 0 for v in sp500.values())
-        ranges = [
-            (top50[:10], "1_10"),
-            (top50[10:25], "11_25"),
-            (top50[25:50], "26_50"),
-        ]
-        # MarketCap charts
-        marketcap_images = []
-        for tickers, label in ranges:
-            path = f"output/marketcap/{date_str}_marketcap_{label}.png"
-            donut_chart_with_rest(
-                sp500,
-                tickers,
-                f"Market Capitalization Distribution – #{label.replace('_', ' – #')} Largest By Market Capitalization",
-                total_mc,
-                path
-            )
-            marketcap_images.append(path)
-        posts.append({
-            "type": "marketcap",
-            "images": marketcap_images,
-            "label": "1_50"
-        })
+    if mode == "AM":
+        # ---------------- DAILY LEADERS/LAGGARDS ----------------
+        if day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]:
+            daily_df, spx_perf = compute_daily_performance(sp500)
+            daily_path = f"output/leaders_laggards/{date_str}_daily_gainers_losers.png"
+            plot_gainers_losers(daily_df, "Daily", spx_perf, save_path=daily_path)
+            posts.append({
+                "type": "gainers_losers",
+                "images": [daily_path],
+                "timeframe": "Daily",
+            })
 
-        # P/E charts
-        pe_paths = plot_pe_bar_charts_fixed(sp500, top50, date_str=date_str)
-        if pe_paths:
-            posts.append({"type": "pe", "images": [pe_paths[0]], "subtype": "trailing"})
-            posts.append({"type": "pe", "images": [pe_paths[1]], "subtype": "forward"})
+        if cfg.get("fundamentals"):
+            total_mc = sum(v.get("market_cap") or 0 for v in sp500.values())
+            ranges = [
+                (top50[:10], "1_10"),
+                (top50[10:25], "11_25"),
+                (top50[25:50], "26_50"),
+            ]
+            # MarketCap charts
+            marketcap_images = []
+            for tickers, label in ranges:
+                path = f"output/marketcap/{date_str}_marketcap_{label}.png"
+                donut_chart_with_rest(
+                    sp500,
+                    tickers,
+                    f"Market Capitalization Distribution – #{label.replace('_', ' – #')} Largest By Market Capitalization",
+                    total_mc,
+                    path
+                )
+                marketcap_images.append(path)
+            posts.append({
+                "type": "marketcap",
+                "images": marketcap_images,
+                "label": "1_50"
+            })
 
-        # ---------------- TOP VOLUME CHARTS ----------------
-        volume_timeframes = ["1w", "1mo", "YTD", "1y"]
-        volume_images = []
+            # P/E charts
+            pe_paths = plot_pe_bar_charts_fixed(sp500, top50, date_str=date_str)
+            if pe_paths:
+                posts.append({"type": "pe", "images": [pe_paths[0]], "subtype": "trailing"})
+                posts.append({"type": "pe", "images": [pe_paths[1]], "subtype": "forward"})
 
-        for tf in volume_timeframes:
-            img_paths = plot_top_volume_bar(sp500, top_n=50, timeframe=tf, date_str=date_str)
-            volume_images.extend(img_paths)
+            # ---------------- TOP VOLUME CHARTS ----------------
+            volume_timeframes = ["1w", "1mo", "YTD", "1y"]
+            volume_images = []
 
-        posts.append({
-            "type": "volume",
-            "images": volume_images
-        })
+            for tf in volume_timeframes:
+                img_paths = plot_top_volume_bar(sp500, top_n=50, timeframe=tf, date_str=date_str)
+                volume_images.extend(img_paths)
 
+            posts.append({
+                "type": "volume",
+                "images": volume_images
+            })
     else:
         timeframe = cfg["timeframe"]
 
@@ -632,14 +697,16 @@ def run_today():
             })
 
     # Save metadata JSON
-    meta_path = f"output/metadata/posts_{date_str}.json"  # UPDATED
+    meta_path = f"output/metadata/posts_{date_str}_{mode.lower()}.json"  # UPDATED
     with open(meta_path, "w") as f:
         json.dump(posts, f, indent=2)
     log(f"Saved metadata JSON: {meta_path}")
     log("run_today() completed")
 
+
 if __name__ == "__main__":
-    run_today()
+    mode = sys.argv[1] if len(sys.argv) > 1 else "PM"
+    run_today(mode=mode)
 
 
 
