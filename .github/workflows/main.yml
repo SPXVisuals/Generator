@@ -3,6 +3,7 @@ name: SPXVisuals Daily Run
 on:
   schedule:
     - cron: '45 14 * * *'
+    - cron: '15 21 * * *'
   workflow_dispatch:
 
 jobs:
@@ -26,11 +27,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install pandas yfinance matplotlib seaborn numpy tweepy
 
+      # 3.5 Set Mode for AM and PM runs
+      - name: Set mode based on time
+        id: mode
+        run: |
+          HOUR=$(date -u +"%H")
+          if [ "$HOUR" -lt 21 ]; then
+            echo "mode=AM" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=PM" >> "$GITHUB_OUTPUT"
+          fi
+
       # 4️⃣ Generate data and charts
       - name: Generate data and charts
         run: |
           cd SPXVisuals
-          python generate_data.py
+          python generate_data.py ${{ steps.mode.outputs.mode }}
 
       # 🔍 Debug: show working directory and output files
       - name: Debug output paths
