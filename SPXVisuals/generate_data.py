@@ -669,7 +669,10 @@ def run_today(mode):
                 "images": volume_images
             })
     else:
-        timeframe = cfg["timeframe"]
+        timeframe = cfg.get("timeframe")
+        if not timeframe:
+            log(f"No timeframe defined for {day}, skipping PM charts.")
+            return
 
         # Gainers And Losers
         perf_df = compute_period_performance(sp500, timeframe)
@@ -727,6 +730,7 @@ def run_today(mode):
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "PM"
     run_today(mode=mode)
+
 
 
 
