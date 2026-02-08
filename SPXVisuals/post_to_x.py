@@ -28,7 +28,7 @@ def build_tweet_text(post):
         "normalized": "#PriceChart",
         "marketcap": "#MarketCapitalization #MarketCap",
         "volume": "#Volume #TradingVolume",
-        "pe": "#PE",
+        "pe": "#PE #PERatio #PriceToEarnings",
         "gainers_losers": "#MarketLeaders #MarketLaggards"
     }
     hashtags.append(type_tag_map.get(post["type"], ""))
@@ -56,7 +56,7 @@ def build_tweet_text(post):
     elif post["type"] == "volume":
         return f"Volume Distribution Charts For The 50 Largest S&P 500 Index Components 📊 {hashtags_text}"
     elif post["type"] == "pe":
-        return f"Trailing and Forward P/E Charts For The 50 Largest S&P 500 Index Components 📊 {hashtags_text}"
+        return f"Trailing And Forward P/E Ratio Charts For The 50 Largest S&P 500 Index Components 📊 {hashtags_text}"
     elif post["type"] == "gainers_losers":
         timeframe = post.get("timeframe", "")
         return (
@@ -203,6 +203,7 @@ def update_metadata_with_tweet(tweet, tweet_id):
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
