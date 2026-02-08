@@ -47,8 +47,9 @@ def build_tweet_text(post):
         timeframe_text = fname.split("_")[1]
     elif post["type"] == "volume" and post["images"]:
         fname = os.path.basename(post["images"][0])
-        timeframe_text = fname.split("_")[1]
-
+    elif post["type"] == "pe" and post["images"]:
+        fname = os.path.basename(post["images"][0])
+        
     # Build text per type
     if post["type"] == "ma":
         return f"{timeframe_text} - {post['ticker']} SMA & EMA Charts 📈 {hashtags_text}"
@@ -59,8 +60,7 @@ def build_tweet_text(post):
     elif post["type"] == "volume":
         return f"Volume Distribution Charts For The 50 Largest S&P 500 Index Components 📊 {hashtags_text}"
     elif post["type"] == "pe":
-        pe_type = "Trailing" if "trailing" in post.get("images", [""])[0] else "Forward"
-        return f"{pe_type} P/E Chart For The 50 Largest S&P 500 Index Components 📊 {hashtags_text}"
+        return f"Trailing and Forward P/E Charts For The 50 Largest S&P 500 Index Components 📊 {hashtags_text}"
     elif post["type"] == "gainers_losers":
         timeframe = post.get("timeframe", "")
         return (
@@ -124,7 +124,6 @@ def post_tweets():
         access_token_secret=access_secret
     )
 
-    time.sleep(random.randint(0, 30 * 60))
     tweets = prepare_posts_for_tweeting()
     for tweet in tweets:
         media_ids = []
@@ -208,6 +207,7 @@ def update_metadata_with_tweet(tweet, tweet_id):
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
