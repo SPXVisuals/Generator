@@ -45,10 +45,6 @@ def build_tweet_text(post):
     elif post["type"] == "normalized" and post["images"]:
         fname = os.path.basename(post["images"][0])
         timeframe_text = fname.split("_")[1]
-    elif post["type"] == "volume" and post["images"]:
-        fname = os.path.basename(post["images"][0])
-    elif post["type"] == "pe" and post["images"]:
-        fname = os.path.basename(post["images"][0])
         
     # Build text per type
     if post["type"] == "ma":
@@ -207,6 +203,7 @@ def update_metadata_with_tweet(tweet, tweet_id):
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
