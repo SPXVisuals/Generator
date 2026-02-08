@@ -61,7 +61,7 @@ jobs:
           cd SPXVisuals
           shopt -s nullglob
 
-          files=(output/normalized/*.png output/ma/*.png output/marketcap/*.png output/pe/*.png output/leaders_laggards/*.png)
+          files=(output/normalized/*.png output/ma/*.png output/marketcap/*.png output/pe/*.png output/volume/*.png output/leaders_laggards/*.png)
 
           echo "Found ${#files[@]} files"
 
@@ -108,6 +108,7 @@ jobs:
           cp -r SPXVisuals/output/ma pages-repo/output/
           cp -r SPXVisuals/output/marketcap pages-repo/output/
           cp -r SPXVisuals/output/pe pages-repo/output/
+          cp -r SPXVisuals/output/volume pages-repo/output/
           cp -r SPXVisuals/output/leaders_laggards pages-repo/output/
 
       # 1️⃣1️⃣ Commit & push
