@@ -84,7 +84,7 @@ jobs:
           TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
         run: |
           cd SPXVisuals
-          python post_to_x.py
+          python post_to_x.py ${{ steps.mode.outputs.mode }}
 
       # 7️⃣ Checkout GitHub Pages repo
       - name: Checkout Pages repo
