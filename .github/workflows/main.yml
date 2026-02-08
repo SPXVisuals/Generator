@@ -98,7 +98,7 @@ jobs:
       - name: Copy all metadata JSON files
         run: |
           mkdir -p pages-repo/output/metadata
-          cp -r SPXVisuals/output/metadata/posts_*.json pages-repo/output/metadata/
+          cp -v SPXVisuals/output/metadata/posts_*.json pages-repo/output/metadata/ 2>/dev/null || true
 
       # 🔟 Copy chart images only if they exist
       - name: Copy chart images
