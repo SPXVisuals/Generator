@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import yfinance as yf
 import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
@@ -12,7 +13,6 @@ import random
 import sys
 import warnings
 
-matplotlib.use("Agg")  # headless plotting
 warnings.filterwarnings("ignore", message=".*not compatible with tight_layout.*")
 plt.rcParams["figure.autolayout"] = True
 sns.set_style("whitegrid")
@@ -31,6 +31,7 @@ OUTPUT_DIRS = [
     "output/ma",
     "output/marketcap",
     "output/pe",
+    "output/volume",
     "output/metadata",
     "output/leaders_laggards"
 ]
@@ -378,17 +379,31 @@ def plot_pe_bar_charts_fixed(sp500, tickers, date_str=None):  # UPDATED
                 rows.append({"Ticker": t, "Value": pe, "Color": "Other"})
         df = pd.DataFrame(rows).sort_values("Value", ascending=False)
         plt.figure(figsize=(18, 7), dpi=200)
+
         ax = sns.barplot(
-            data=df,
-            x="Ticker",
-            y="Value",
-            hue="Color",
-            palette={"SPY": "black", "Other": "skyblue"},
-            dodge=False,
-            legend=False
+        data=df,
+        x="Ticker",
+        y="Value",
+        hue="Color",
+        palette={"SPY": "black", "Other": "skyblue"},
+        dodge=False,
+        legend=False
         )
+
+        y_max = df["Value"].max()
+        ax.set_ylim(0, y_max * 1.05)
+
         for i, v in enumerate(df["Value"]):
-            ax.text(i, v * 1.02, f"{v:.2f}", ha="center", va="bottom", fontsize=9, rotation=90)
+            ax.text(
+                i,
+                v + y_max * 0.005,
+                f"{v:.2f}",
+                ha="center",
+                va="bottom",
+                fontsize=9,
+                rotation=90
+            )
+
         plt.ylabel(ylabel)
         plt.title(title, fontsize=14)
         plt.xticks(rotation=90)
@@ -438,19 +453,22 @@ def plot_top_volume_bar(sp500, top_n, timeframe, date_str):
         color="skyblue",
         dodge=False
     )
+    
+    y_max = df["Volume"].max()
+    ax.set_ylim(0, y_max * 1.06)
 
-    # Annotate each bar (normal weight, fontsize=9, rotated 90°)
-    for i, row in df.iterrows():
-        label = f"{row['Volume']:.1f}M ({row['Percent']:.2f}%)"
+
+    for i, row in enumerate(df.itertuples()):
         ax.text(
-            i,
-            row['Volume'] * 1.01,  # slightly above the bar
-            label,
-            ha="center",
-            va="bottom",
-            fontsize=9,
-            rotation=90
+        i,
+        row.Volume + y_max * 0.01,
+        f"{row.Volume:.1f}M ({row.Percent:.2f}%)",
+        ha="center",
+        va="bottom",
+        fontsize=9,
+        rotation=90
         )
+
 
     plt.ylabel("Volume (Millions)")
     plt.xlabel("Ticker")
@@ -633,8 +651,10 @@ def run_today(mode):
             # P/E charts
             pe_paths = plot_pe_bar_charts_fixed(sp500, top50, date_str=date_str)
             if pe_paths:
-                posts.append({"type": "pe", "images": [pe_paths[0]], "subtype": "trailing"})
-                posts.append({"type": "pe", "images": [pe_paths[1]], "subtype": "forward"})
+                posts.append({
+                "type": "pe",
+                "images": pe_paths
+                })
 
             # ---------------- TOP VOLUME CHARTS ----------------
             volume_timeframes = ["1w", "1mo", "YTD", "1y"]
@@ -707,6 +727,7 @@ def run_today(mode):
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "PM"
     run_today(mode=mode)
+
 
 
 
