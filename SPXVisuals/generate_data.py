@@ -196,14 +196,15 @@ def compute_daily_performance(sp500):
 
     # Fetch SPX intraday price
     spx_ticker = yf.Ticker(SPX_TICKER)
-    spx_hist = spx_ticker.history(period="2d")  # last 2 trading days
-    if spx_hist.empty:
-        log("[WARN] SPX history empty for daily performance")
+    spx_hist = spx_ticker.history(period="5d")  # ensure prior trading day exists
+    if len(spx_hist) < 2:
+        log("[WARN] Not enough SPX history for daily performance")
         return pd.DataFrame(), {}
 
-    spx_close_yesterday = spx_hist["Close"].iloc[-1]
+    # Yesterday close
+    spx_close_yesterday = spx_hist["Close"].iloc[-2]
 
-    # Use most recent price for today (intraday)
+    # Today intraday price
     spx_today_price = spx_ticker.fast_info.last_price or spx_hist["Close"].iloc[-1]
 
     spx_change = spx_today_price - spx_close_yesterday
@@ -220,8 +221,10 @@ def compute_daily_performance(sp500):
         if close_series is None or len(close_series) < 2:
             continue
 
-        price_yesterday = close_series.iloc[-1]
-        # --- UPDATED: Use intraday price if available ---
+        # Yesterday close
+        price_yesterday = close_series.iloc[-2]
+
+        # Today intraday price (fallback to last close if market closed)
         price_today = d.get("price") or close_series.iloc[-1]
 
         change = price_today - price_yesterday
@@ -239,7 +242,6 @@ def compute_daily_performance(sp500):
 
     df = pd.DataFrame(rows)
     return df, spx_perf
-
 
 # Period Performance
 def compute_period_performance(sp500, timeframe):
@@ -730,6 +732,7 @@ def run_today(mode):
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "PM"
     run_today(mode=mode)
+
 
 
 
