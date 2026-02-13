@@ -9,6 +9,7 @@ import sys
 
 # Determine mode: AM or PM
 mode = sys.argv[1].upper() if len(sys.argv) > 1 else "PM"
+RUN_DATE = datetime.now().strftime("%Y-%m-%d")
 
 # ---------------- Build tweet text ----------------
 def build_tweet_text(post):
@@ -68,7 +69,7 @@ def build_tweet_text(post):
 # ---------------- Load posts JSON ----------------
 def load_posts_json(date=None, mode=mode):
     if date is None:
-        date = datetime.now().strftime("%Y-%m-%d")
+        date = RUN_DATE
     path = f"output/metadata/posts_{date}_{mode.lower()}.json"
     if not os.path.exists(path):
         log(f"No JSON file found for {date} {mode} at {path}")
@@ -165,11 +166,9 @@ def post_tweets():
                 from datetime import datetime
                 readable = datetime.fromtimestamp(int(reset_ts)).strftime("%Y-%m-%d %H:%M:%S")
                 log(f"Rate limit resets at: {readable}")
-        else:
-            log("No HTTP response available in exception, cannot show headers or rate-limit info.")
 
 def update_metadata_with_tweet(tweet, tweet_id):
-    date = datetime.now().strftime("%Y-%m-%d")
+    date = RUN_DATE
     meta_path = f"output/metadata/posts_{date}_{mode.lower()}.json"
 
     if not os.path.exists(meta_path):
@@ -203,6 +202,7 @@ def update_metadata_with_tweet(tweet, tweet_id):
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
