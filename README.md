@@ -10,8 +10,8 @@ Generator is a production-grade market data and analytics pipeline powering SPXV
 
 2. Data Engineering & Transformation
 - Cleans, normalizes, and aggregates raw market data
-- Structures cross-sectional datasets (e.g., S&P 500 universe)
-- Computes derived metrics (returns, relative performance, volume contribution, rolling averages)
+- Structures cross-sectional datasets
+- Computes derived metrics
 - Serializes structured outputs into JSON for front-end consumption
 - Publishes version-controlled artifacts to SPXVisuals.github.io
 
