@@ -52,5 +52,6 @@ Generator is a production-grade market data and analytics pipeline powering SPXV
 
 **Infrastructure**
 - GitHub Actions automated CI/CD scheduling and workflow orchestration
-- Static-site deployment via SPXVisuals.github.io
 - Git-based version-controlled chart and metadata publishing
+- Automated posting of charts and narrative summaries to social media
+- Automated push of chart images and structured JSON metadata to the front-end repository
