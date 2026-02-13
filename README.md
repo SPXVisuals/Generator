@@ -1,6 +1,6 @@
 **Generator**
 
-Generator is a production-grade market data and analytics pipeline powering SPXVisuals. It automates the ingestion, transformation, quantitative and fundamental analysis, chart generation, and multi-channel distribution of equity market insights realted to the S&P 500 index and its constituients. The pipeline provides both technical and fundamental perspectives in a fully automated workflow.
+Generator is a production-grade market data and analytics pipeline powering SPXVisuals. It automates the ingestion, transformation, quantitative and fundamental analysis, chart generation, and multi-channel distribution of equity market insights related to the S&P 500 index and its constituients. The pipeline provides both technical and fundamental perspectives in a fully automated workflow.
 
 **Core Responsibilities**
 1. Data Ingestion
