@@ -45,14 +45,12 @@ Generator is a production-grade market data and analytics pipeline powering SPXV
 **Tech Stack**
 - Python
 - Pandas
-- Numpy
+- NumPy
 - JSON
-- Git-based version-controlled publishing
-- GitHub Actions
 - Matplotlib
 - Seaborn
 
 **Infrastructure**
-- Automated CI/CD scheduling and workflow orchestration
+- GitHub Actions automated CI/CD scheduling and workflow orchestration
 - Static-site deployment via SPXVisuals.github.io
-- Version-controlled chart and metadata publishing
+- Git-based version-controlled chart and metadata publishing
