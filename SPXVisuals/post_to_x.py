@@ -6,6 +6,8 @@ import tweepy
 import time
 import random
 import sys
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # Determine mode: AM or PM
 mode = sys.argv[1].upper() if len(sys.argv) > 1 else "PM"
@@ -90,6 +92,21 @@ def prepare_posts_for_tweeting(date=None):
         tweets.append({"text": text, "images": images})
     return tweets
 
+# ---------------- Retry Post ----------------
+def post_with_retry(client, text, media_ids, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return client.create_tweet(text=text, media_ids=media_ids)
+        except Exception as e:
+            wait_time = (2 ** attempt) * 15  # 15s, 30s, 60s
+            log(f"Post attempt {attempt + 1} failed: {e}")
+
+            if attempt < max_retries - 1:
+                log(f"Retrying in {wait_time} seconds...")
+                time.sleep(wait_time)
+            else:
+                raise e
+                
 # ---------------- Post to X (v2) ----------------
 def post_tweets():
     # Read credentials from environment
@@ -121,6 +138,17 @@ def post_tweets():
         access_token_secret=access_secret
     )
 
+    # Attach retry strategy to underlying session
+    retry_strategy = Retry(
+        total=3,
+        backoff_factor=2,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["POST"]
+    )
+
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    client.session.mount("https://", adapter)
+
     tweets = prepare_posts_for_tweeting()
     for tweet in tweets:
         media_ids = []
@@ -137,33 +165,34 @@ def post_tweets():
             continue
 
         try:
-            status = client.create_tweet(text=tweet["text"], media_ids=media_ids)  # v2 post
+            status = post_with_retry(client, tweet["text"], media_ids)
             tweet_id = status.data["id"]
-            log(f"Tweet posted successfully: {status.data['id']}")
+            log(f"Tweet posted successfully: {tweet_id}")
             update_metadata_with_tweet(tweet, tweet_id)
             time.sleep(random.randint(25 * 60, 45 * 60))
+            
         except Exception as e:
             log(f"Failed to post tweet: {tweet['text']}\nError: {e}")
-            # Try to extract full HTTP info if available
+
+            status = None
+            body = None
+            headers = {}
+
             if hasattr(e, "response") and e.response is not None:
                 resp = e.response
                 headers = dict(resp.headers)
                 status = getattr(resp, "status_code", None)
                 body = getattr(resp, "text", None)
 
-            # Log basic info
             log(f"HTTP status: {status}")
             log(f"Response body: {body}")
             log(f"All headers: {headers}")
 
-            # Log rate-limit headers if present
             rate_headers = {k: v for k, v in headers.items() if "x-rate-limit" in k.lower()}
             log(f"Rate-limit headers: {rate_headers}")
 
-            # Optional: human-readable reset time
             reset_ts = rate_headers.get("x-rate-limit-reset")
             if reset_ts:
-                from datetime import datetime
                 readable = datetime.fromtimestamp(int(reset_ts)).strftime("%Y-%m-%d %H:%M:%S")
                 log(f"Rate limit resets at: {readable}")
 
@@ -202,6 +231,7 @@ def update_metadata_with_tweet(tweet, tweet_id):
 # ---------------- Main ----------------
 if __name__ == "__main__":
     post_tweets()
+
 
 
 
