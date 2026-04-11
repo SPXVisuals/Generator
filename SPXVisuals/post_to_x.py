@@ -20,9 +20,11 @@ def build_tweet_text(post):
     if post.get("ticker"):
         hashtags.append(f"${post['ticker']}")
         hashtags.append(f"#{post['ticker']}")
-
+    else:
+        hashtags.append(f"$SPY")
+        
     hashtags.extend([
-        "$SPY", "$SPX", "#SPX", "#SPY", "#SP500", "#SAndP500",
+        "#SPY", "#SPX", "#SP500", "#SAndP500",
         "#Equities", "#Stocks", "#Market", "#StockMarket", "#Investing"
     ])
 
