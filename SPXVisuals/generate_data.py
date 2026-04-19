@@ -12,6 +12,7 @@ from logger import log
 import random
 import sys
 import warnings
+import math
 
 warnings.filterwarnings("ignore", message=".*not compatible with tight_layout.*")
 plt.rcParams["figure.autolayout"] = True
@@ -163,11 +164,16 @@ def fetch_market_data(sp500):
 
 # ---------------- RANKING ----------------
 def rank_by_market_cap(sp500):
+    def valid_market_cap(t):
+        mc = sp500[t].get("market_cap")
+        return isinstance(mc, (int, float)) and not math.isnan(mc)
+
     ranked = sorted(
-        [t for t in sp500 if "market_cap" in sp500[t]],
+        [t for t in sp500 if valid_market_cap(t)],
         key=lambda x: sp500[x]["market_cap"],
         reverse=True
     )
+
     ranks = {t: i + 1 for i, t in enumerate(ranked)}
     return ranked, ranks
 
