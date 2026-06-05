@@ -25,7 +25,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas yfinance matplotlib seaborn numpy tweepy
+          pip install pandas yfinance matplotlib seaborn numpy 
+      # tweepy
 
       # 3.5 Set Mode for AM and PM runs
       - name: Set mode based on time
