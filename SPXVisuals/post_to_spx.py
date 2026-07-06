@@ -39,7 +39,7 @@ def build_tweet_text(post):
         return f"P/E Ratio Charts 📊 {hashtags_text}"
 
     elif post["type"] == "gainers_losers":
-        return f"S&P 500 Leaders vs Laggards 📋 {hashtags_text}"
+        return f"S&P 500 Leaders & Laggards 📋 {hashtags_text}"
 
     return hashtags_text
 
