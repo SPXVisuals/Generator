@@ -13,11 +13,11 @@ jobs:
     steps:
       # 1️⃣ Checkout the repository
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       # 2️⃣ Set up Python
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -96,7 +96,7 @@ jobs:
 
       # 7️⃣ Checkout GitHub Pages repo
       - name: Checkout Pages repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           repository: SPXVisuals/SPXVisuals.github.io
           token: ${{ secrets.GH_PAGES_TOKEN }}
