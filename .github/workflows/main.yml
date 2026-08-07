@@ -67,10 +67,10 @@ jobs:
           echo "Found ${#files[@]} files"
 
           if (( ${#files[@]} > 0 )); then
-            echo "Images found. Proceeding to post to X."
+            echo "Images found. Proceeding to post to SPXVisuals."
             echo "has_images=true" >> "$GITHUB_OUTPUT"
           else
-            echo "No images found. Skipping posting to X."
+            echo "No images found. Skipping posting to SPXVisuals."
             echo "has_images=false" >> "$GITHUB_OUTPUT"
           fi
 
